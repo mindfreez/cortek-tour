@@ -1,0 +1,1105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CorTek Systems · From the Desk to the Rack</title>
+<!-- Scroll-driven 3D story: office workstations → wall plates → in-wall runs → J-hook trunk above the ceiling →
+     MDF → rack build-out. Everything is procedural Three.js (no model downloads) so it stays light on phones. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#121016;--ink2:#1c1922;--purple:#6c3aa8;--green:#46c265;--text:#ece9f1;--muted:#aaa4b6;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--ink);color:var(--text);font:16px/1.6 Montserrat,system-ui,sans-serif}
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
+#track{height:2410vh}
+#ptzHud{position:fixed;top:72px;right:16px;border:2px solid #f07f2a;border-radius:6px;z-index:4;pointer-events:none;opacity:0;font:700 11px Montserrat,sans-serif;color:#fff}
+#ptzHud span{position:absolute;left:8px;top:6px;background:rgba(0,0,0,.6);padding:2px 7px;border-radius:4px}
+#ptzHud i{position:absolute;right:8px;top:6px;font-style:normal;color:#ff5a4a}
+.top{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:14px clamp(16px,4vw,40px);z-index:5;pointer-events:none}
+.top img{height:clamp(30px,4vw,44px);pointer-events:auto}
+.btn{pointer-events:auto;display:inline-block;font:700 14px Montserrat,sans-serif;color:var(--ink);background:var(--green);padding:10px 18px;border-radius:999px;text-decoration:none;letter-spacing:.02em}
+.btn.ghost{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,.3)}
+.hdr-actions{display:flex;gap:8px;align-items:center}button.btn{cursor:pointer;font-family:inherit}
+.btn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.panel{position:fixed;top:50%;transform:translateY(-50%);width:min(430px,calc(100vw - 32px));padding:22px 24px;background:rgba(18,16,22,.78);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.08);border-left:3px solid var(--green);border-radius:14px;z-index:4;opacity:0;pointer-events:none;transition:none}
+.panel.left{left:clamp(16px,4vw,48px)}.panel.right{right:clamp(16px,4vw,48px)}
+.panel .k{font:700 12px Montserrat,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--green)}
+.panel h2{font:400 clamp(24px,3vw,34px)/1.1 Audiowide,sans-serif;margin:.3em 0 .4em;text-wrap:balance}
+.panel p{margin:0;color:var(--muted)}
+.hero{left:50%;transform:translate(-50%,-50%);text-align:center;width:min(760px,calc(100vw - 32px));background:radial-gradient(closest-side,rgba(13,11,17,.82),rgba(13,11,17,.5) 60%,transparent);border:none;backdrop-filter:none;padding:48px 32px}
+.hero h1{font:400 clamp(38px,7vw,84px)/1.02 Audiowide,sans-serif;margin:.1em 0 .3em;text-wrap:balance;text-shadow:0 4px 30px rgba(0,0,0,.7)}
+.hero h1 em{font-style:normal;color:var(--green)}
+.hero p{color:#d6d1de;font-size:clamp(15px,1.8vw,19px);text-shadow:0 2px 12px rgba(0,0,0,.8)}
+.hint{margin-top:22px;font:700 12px Montserrat;letter-spacing:.3em;color:var(--muted)}
+.cta{border-left-color:var(--purple)}
+.cta .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.steps{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:5;flex-wrap:wrap;justify-content:center;max-width:calc(100vw - 24px)}
+.steps span{font:600 11px Montserrat;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:5px 10px;border-radius:999px;background:rgba(18,16,22,.7);border:1px solid rgba(255,255,255,.08)}
+.steps span.on{color:var(--ink);background:var(--green);border-color:var(--green)}
+#loading{position:fixed;inset:0;display:grid;place-items:center;background:var(--ink);z-index:9;font:14px Audiowide;letter-spacing:.2em;transition:opacity .5s}
+@media (max-width:700px){.panel{top:auto;bottom:64px;transform:none}.hero{top:42%;bottom:auto;transform:translate(-50%,-50%)}}
+</style>
+</head>
+<body>
+<div id="loading">CORTEK SYSTEMS</div>
+<canvas id="gl"></canvas>
+<header class="top"><a href="https://corteksystems.com/" aria-label="CorTek Systems home"><img src="cortek-logo.png" alt="CorTek Systems"></a><div class="hdr-actions"><button id="snd" class="btn ghost" type="button" aria-pressed="false">♪ Sound</button><a class="btn" href="https://corteksystems.com/contact/">Get a quote</a></div></header>
+
+<section class="panel hero" data-a="0" data-b="0.075">
+  <h1>From the desk<br><em>to the rack.</em></h1>
+  <p>We plan, cable and install business networks, and the systems your business runs on.</p>
+  <div class="hint">SCROLL TO BUILD ↓</div>
+</section>
+<section class="panel left" id="gatePanel" data-a="-1" data-b="-1"><div class="k">Gate &amp; parking</div><h2>See who's at the gate</h2><p>A video intercom takes a code, badge or phone tap and opens the gate. A PTZ camera pans, tilts and zooms right in on the driver.</p></section>
+<section class="panel left" id="dashPanel" data-a="-1" data-b="-1"><div class="k">Manager dashboard</div><h2>Run it all from one screen</h2><p>Add door access users, pull up any camera, and see the phone system with every call logged, from the office or your phone.</p></section>
+<div id="ptzHud"><span>PTZ CAM 01</span><i>● LIVE</i></div>
+<section class="panel right" id="commPanel" data-a="-1" data-b="-1"><div class="k">Communication</div><h2>Everyone stays connected</h2><p>Desk phones, corded or Bluetooth headsets, or just an app on the PC. Calls, chat and voicemail all live in one app, at the desk or anywhere.</p></section>
+<section class="panel left" id="accessPanel" data-a="-1" data-b="-1"><div class="k">Access control</div><h2>Tap in. Doors open.</h2><p>Access readers unlock doors with a phone tap, badge or face ID, and every entry is logged. Once inside, your phone joins the Wi-Fi on its own.</p></section>
+<section class="panel left" data-a="0.11" data-b="0.185"><div class="k">01 · Workspace</div><h2>It starts at the desk</h2><p>Every workstation, TV and phone gets its own dedicated, tested connection. No daisy-chained switches under desks.</p></section>
+<section class="panel right" data-a="0.19" data-b="0.3"><div class="k">02 · Terminations</div><h2>Plates on the wall, cable in the wall</h2><p>Keystone jacks snap into labeled wall plates, and each run goes up inside the wall. Nothing lying across the floor.</p></section>
+<section class="panel left" data-a="0.32" data-b="0.45"><div class="k">03 · Pathways</div><h2>Above the ceiling, done properly</h2><p>Cables bundle into a trunk on J-hooks. Access points blanket every room, so phones roam AP to AP without dropping. Ceiling speakers carry music and paging, and cameras cover every entrance.</p></section>
+<section class="panel right" data-a="0.47" data-b="0.56"><div class="k">04 · MDF · Main Distribution Frame</div><h2>Welcome to the Mainframe</h2><p>Where the core technology lives. The main trunk arrives on a ladder rack and drops into the rack inside a protective sleeve, the way code requires.</p></section>
+<section class="panel right" id="idfPanel" data-a="-1" data-b="-1"><div class="k">IDF · Intermediate Distribution Frame</div><h2>Welcome to the Intermediate Frame</h2><p>A smaller wall-mount rack closer to the users, with its own switches, patch panels and battery backup, tied back to the Mainframe (MDF) over fiber.</p></section>
+<section class="panel left" data-a="0.58" data-b="0.73"><div class="k">05 · Rack build</div><h2>Built from the top down</h2><p>The monitor shelf and fiber go in first, then patch panels and switches, the door access hub, the firewall, modem, PDU, audio amp, camera recorder and, at the bottom, battery backup.</p></section>
+<section class="panel right" data-a="0.745" data-b="0.84"><div class="k">06 · Patching</div><h2>Clean patch cords. Every port.</h2><p>Each switch sits right above its patch panel, so every cord is one short, rounded loop, color-coded by what it powers. Lighted patch cords glow at the switch so every port is easy to trace.</p></section>
+<section class="panel left" data-a="0.845" data-b="0.893"><div class="k">07 · Backbone</div><h2>Fiber core, live WAN</h2><p>Fiber runs from the gateway to every switch and out to each IDF, and the modem feeds the WAN. The lights come on.</p></section>
+<section class="panel left" data-a="0.9" data-b="0.935"><div class="k">08 · Security</div><h2>Every camera, one screen</h2><p>Entry and exit doors, parking, hallways and the network room, recorded around the clock and live on the rack monitor.</p></section>
+<section class="panel right cta" id="quote" data-a="0.94" data-b="1.01"><div class="k">CorTek Systems</div><h2>Let's build yours.</h2><p>Offices, retail, restaurants and warehouses. Structured cabling, Wi-Fi, cameras, audio and network racks, installed right the first time.</p><div class="row"><a class="btn" href="https://corteksystems.com/contact/">Get a free quote</a><a class="btn ghost" href="https://corteksystems.com/">Our services</a></div></section>
+
+<nav class="steps" aria-label="Progress"><span data-a="0.08">Gate</span><span data-a="0.1">Access</span><span data-a="0.105">Desk</span><span data-a="0.15">Phones</span><span data-a="0.19">Wall</span><span data-a="0.31">Ceiling</span><span data-a="0.46">MDF</span><span data-a="0.57">Rack</span><span data-a="0.85">Online</span><span data-a="0.895">IDF</span><span data-a="0.9">Security</span><span data-a="0.935">Dashboard</span></nav>
+<div id="track"></div>
+
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+// canvas textures (labels, gear faces, camera wall) need the brand fonts loaded first
+await Promise.race([Promise.all(['600 54px Montserrat', '20px Audiowide'].map(f => document.fonts.load(f))), new Promise(r => setTimeout(r, 2500))]).catch(() => {});
+
+// ---------- setup ----------
+const PURPLE = 0x6c3aa8, GREEN = 0x46c265;
+const canvas = document.getElementById('gl');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5)); // cap for older laptops/phones
+renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0d0b11);
+scene.fog = new THREE.Fog(0x0d0b11, 45, 140);
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.03, 400);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x2b2436, 0.55));
+const sun = new THREE.DirectionalLight(0xfff1e0, 1.3); sun.position.set(20, 30, 25); scene.add(sun);
+
+const clamp01 = v => v < 0 ? 0 : v > 1 ? 1 : v;
+const seg = (p, a, b) => clamp01((p - a) / (b - a));
+const sm = t => t * t * (3 - 2 * t);
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+const std = (color, o = {}) => new THREE.MeshStandardMaterial({ color, roughness: .6, metalness: 0, ...o });
+function add(geo, mat, x = 0, y = 0, z = 0, parent = scene) { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); parent.add(m); return m; }
+const box = (w, h, d, mat, x, y, z, parent) => add(new THREE.BoxGeometry(w, h, d), mat, x, y, z, parent);
+function canvasTex(w, h, draw) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = renderer.capabilities.getMaxAnisotropy(); return t;
+}
+const rr = (g, x, y, w, h, r) => { g.beginPath(); g.roundRect(x, y, w, h, r); g.fill(); };
+
+// rack, ears, APs, speakers, cameras, monitor and modem are modeled in Blender (cortek-gear.blend → .glb)
+const gear = (await new GLTFLoader().loadAsync('cortek-gear.glb?v=6')).scene;
+const G = name => gear.getObjectByName(name).clone(true);
+const exterior = new THREE.Group(), floor = new THREE.Group(), plenum = new THREE.Group(), mdf = new THREE.Group(), cablesG = new THREE.Group(), logo = new THREE.Group();
+scene.add(exterior, floor, plenum, mdf, cablesG, logo);
+const CEIL = 2.8, PLEN = 3.15, TRUNK_Z = -2.6;
+
+// ---------- exterior: modern glass tower (our floor is k = 0, cut away) ----------
+const winTex = canvasTex(1024, 128, (g, w, h) => {
+  const sky = g.createLinearGradient(0, 0, 0, h); sky.addColorStop(0, '#1b2a3a'); sky.addColorStop(1, '#070b12');
+  g.fillStyle = sky; g.fillRect(0, 0, w, h);                                            // dark tinted glass
+  for (let x = 0; x < w; x += 64) {
+    if (Math.random() < .28) { g.fillStyle = `rgba(255,${200 + Math.random() * 40 | 0},150,${.25 + Math.random() * .3})`; g.fillRect(x + 2, 8, 60, h - 16); }
+    g.fillStyle = '#05070a'; g.fillRect(x, 0, 2, h);                                    // slim black mullions
+  }
+  g.fillStyle = 'rgba(140,190,230,.10)'; g.fillRect(0, 0, w, 6);                       // sky glint along the top edge
+});
+const towerGlass = std(0xffffff, { map: winTex, emissiveMap: winTex, emissive: 0xffffff, emissiveIntensity: .5, roughness: .06, metalness: .85 });
+const slabM = std(0x1c1f25, { roughness: .35, metalness: .7 });                         // dark metal floor bands
+for (let k = -4; k <= 4; k++) {
+  const y = k * 3.4;
+  box(24.3, .22, 16.3, slabM, 0, y - .11, 0, exterior);
+  if (k !== 0) box(24, 3.18, 16, towerGlass, 0, y + 1.6, 0, exterior);
+}
+box(24.4, .7, 16.4, slabM, 0, 5 * 3.4 + .1, 0, exterior);                                  // dark crown
+{ const roof = G('Rooftop'); roof.position.set(0, 5 * 3.4 + .45, 0); exterior.add(roof); }            // Blender: penthouse, HVAC, telecom mast, dish
+add(new THREE.PlaneGeometry(300, 300), std(0x17151c, { roughness: 1 }), 0, -4 * 3.4 - .3, 0, exterior).rotation.x = -Math.PI / 2;
+// our floor's facade: two glass walls that dissolve so we can see in
+const facadeM = std(0x33475a, { transparent: true, opacity: .6, roughness: .04, metalness: .85 });
+box(24, 3.1, .05, facadeM, 0, 1.6, 8, scene); box(.05, 3.1, 16, facadeM, 12, 1.6, 0, scene);
+
+// ---------- office interior ----------
+const texL = new THREE.TextureLoader();
+const tx = (file, rx = 1, ry = 1) => { const t = texL.load('tex/' + file); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rx, ry); t.anisotropy = renderer.capabilities.getMaxAnisotropy(); return t; };
+box(24, .1, 16, std(0xffffff, { map: tx('concrete.jpg', 6, 4), roughness: .4 }), 0, -.05, 0, floor);                 // polished concrete
+box(12, .012, 10, std(0xffffff, { map: tx('carpet.jpg', 8, 7), roughness: .95 }), -6, .006, 3, floor);              // carpet, open office
+const wallM = std(0xf3f1ed, { roughness: .9, transparent: true });
+box(24, CEIL, .12, wallM, 0, CEIL / 2, -8, floor);                                     // back wall
+box(.12, CEIL, 16, wallM, -12, CEIL / 2, 0, floor);                                    // left wall
+box(.02, .9, 3, std(0x3a2360, { roughness: .8 }), -11.93, 1.9, 4.5, floor);               // brand accent panel
+
+const oak = std(0xffffff, { map: tx('oak.jpg', 1, 1), roughness: .55 }), black = std(0x1d1c22, { roughness: .5 }), chairM = std(0x26252c, { roughness: .8 });
+const uiTex = canvasTex(512, 300, (g, w, h) => {
+  g.fillStyle = '#10131a'; g.fillRect(0, 0, w, h);
+  g.fillStyle = '#1f2533'; g.fillRect(0, 0, 90, h);
+  const cols = ['#46c265', '#6c3aa8', '#3d8bfd', '#f2c230'];
+  for (let i = 0; i < 6; i++) { g.fillStyle = cols[i % 4]; rr(g, 110 + (i % 3) * 132, 24 + (i / 3 | 0) * 90, 118, 72, 8); }
+  g.strokeStyle = '#46c265'; g.lineWidth = 4; g.beginPath(); g.moveTo(110, 270); for (let x = 110; x < 500; x += 24) g.lineTo(x, 230 - Math.random() * 40); g.stroke();
+});
+const screenM = new THREE.MeshBasicMaterial({ map: uiTex });
+const skins = [0xc68c6a, 0x5a3a28, 0xf1c7a5, 0x8d5a3b, 0xe0b89a, 0x3d2718, 0xd9a07a], shirts = [0x2f4a72, 0xe9e7e2, 0x2a9d8f, 0x7a2e3a, 0x5c677d, 0x6b7a3a, 0x7fa7d6, 0x3a3a40], hairs = [0x2b1d14, 0x111111, 0xd9b36a, 0x6b3d1f, 0x9a9a9a, 0x1a1210];
+let pi = 0;
+function person(parent) {                               // Blender-modeled seated worker, recolored per person
+  const g = G('PersonSeated'); parent.add(g); const i = pi++;
+  const cols = { PSkin: skins[i % skins.length], PShirt: shirts[i % shirts.length], PHair: hairs[i % hairs.length] };
+  g.traverse(o => { if (o.isMesh && cols[o.material.name] !== undefined) { o.material = o.material.clone(); o.material.color.setHex(cols[o.material.name]); } });
+  if (i % 3 === 1) add(new THREE.SphereGeometry(1, 16, 12), std(cols.PHair, { roughness: .9 }), 0, 1.13, .05, g).scale.set(.1, .15, .07);   // longer hair on some
+  return g;
+}
+function chair(parent) { parent.add(G('OfficeChair')); }                // Blender-modeled task chair
+// workstation facing -z in local space; returns the world point where its cable starts
+const phoneRings = [];                                     // desk phones that ring in the Communication scene
+function deskPhone(g, x, z) {
+  const ph = new THREE.Group(); ph.position.set(x, .76, z); ph.rotation.y = .25; g.add(ph);
+  const base = box(.2, .045, .17, black, 0, .03, 0, ph); base.rotation.x = -.25;
+  const scr = add(new THREE.PlaneGeometry(.1, .05), new THREE.MeshBasicMaterial({ color: 0x3a7bd5 }), .02, .058, .01, ph); scr.rotation.x = -Math.PI / 2 + .25 + .9;
+  box(.05, .035, .19, std(0x2a2b30, { roughness: .5 }), -.12, .06, 0, ph);                     // handset
+  const led = add(new THREE.SphereGeometry(.007, 8, 6), new THREE.MeshBasicMaterial({ color: 0xe0453a }), .085, .06, -.06, ph);
+  phoneRings.push({ ph, scr, led }); return ph;
+}
+function headset(pp, mono) {                               // over-the-head band, ear cup(s) and boom mic
+  const hm = std(mono ? 0x111114 : 0x2a2b30, { roughness: .5 });
+  add(new THREE.TorusGeometry(.118, .009, 6, 20, Math.PI), hm, 0, 1.23, -.02, pp);
+  for (const sx of mono ? [-1] : [-1, 1]) { const c = add(new THREE.CylinderGeometry(.036, .036, .022, 16), hm, sx * .118, 1.21, -.02, pp); c.rotation.z = Math.PI / 2; }
+  const boom = box(.008, .008, .13, hm, -.11, 1.17, -.08, pp); boom.rotation.y = .35;
+}
+const softCanvas = document.createElement('canvas'); softCanvas.width = 512; softCanvas.height = 300;
+const softTex = new THREE.CanvasTexture(softCanvas); softTex.colorSpace = THREE.SRGBColorSpace;
+const softMat = new THREE.MeshBasicMaterial({ map: softTex });
+let softState = '';
+function drawSoft(state) {                                 // PC phone app: incoming call, on a call, team chat, voicemail
+  if (state === softState) return; softState = state;
+  const g = softCanvas.getContext('2d'), W = 512, H = 300;
+  g.fillStyle = '#ffffff'; g.fillRect(0, 0, W, H); g.fillStyle = '#eef3fa'; g.fillRect(0, 0, 90, H); g.fillStyle = '#1e7be0'; g.fillRect(0, 0, W, 4);
+  ['Calls', 'Chat', 'Voicemail', 'Contacts'].forEach((t, i) => { const on = (state === 'chat' && i === 1) || (state === 'vm' && i === 2) || ((state === 'call' || state === 'talk') && i === 0);
+    g.fillStyle = on ? '#1e7be0' : '#6b7587'; g.font = '600 13px Montserrat'; g.fillText(t, 14, 40 + i * 34); });
+  g.fillStyle = '#1b2230'; g.font = '700 16px Montserrat'; g.fillText('Softphone', 106, 30);
+  if (state === 'call' || state === 'talk') {
+    g.fillStyle = '#1e7be0'; g.beginPath(); g.arc(300, 115, 38, 0, 7); g.fill(); g.fillStyle = '#fff'; g.font = '700 26px Montserrat'; g.fillText('FD', 283, 125);
+    g.fillStyle = '#1b2230'; g.font = '600 16px Montserrat'; g.fillText(state === 'call' ? 'Incoming call · Front Desk' : 'On call · Front Desk  00:14', state === 'call' ? 196 : 186, 185);
+    if (state === 'call') { g.fillStyle = '#46c265'; rr(g, 220, 210, 70, 36, 18); g.fillStyle = '#e0453a'; rr(g, 310, 210, 70, 36, 18); }
+    else { g.strokeStyle = '#46c265'; g.lineWidth = 3; g.beginPath(); for (let x = 200; x < 400; x += 6) g.lineTo(x, 230 + Math.sin(x * .3) * 10 * Math.sin(x * .05)); g.stroke(); }
+  } else if (state === 'chat') {
+    const msgs = [['Maria', 'Client is here for the 2:30', 0], ['You', 'On my way out now 👍', 1], ['Dev', 'Printer on 2 fixed ✔', 0], ['You', 'Thanks!', 1]];
+    msgs.forEach(([who, t, me], i) => { const y = 50 + i * 58, x = me ? 250 : 106; g.fillStyle = me ? '#1e7be0' : '#e9eef6'; rr(g, x, y, 240, 44, 12);
+      g.fillStyle = me ? '#d6e7fb' : '#6b7587'; g.font = '600 11px Montserrat'; g.fillText(who, x + 12, y + 16); g.fillStyle = me ? '#fff' : '#1b2230'; g.font = '600 13px Montserrat'; g.fillText(t, x + 12, y + 34); });
+  } else if (state === 'vm') {
+    g.fillStyle = '#e0453a'; rr(g, 106, 44, 110, 24, 12); g.fillStyle = '#fff'; g.font = '700 12px Montserrat'; g.fillText('2 new voicemails', 114, 61);
+    [['Jordan Lee', '0:42', 'Hi, calling about the quote for the second floor...'], ['Supplier', '1:05', 'Your order shipped today, tracking is...']].forEach(([n, d, t], i) => {
+      const y = 86 + i * 98; g.fillStyle = '#eef3fa'; rr(g, 106, y, 390, 84, 10); g.fillStyle = '#1e7be0'; g.beginPath(); g.moveTo(124, y + 24); g.lineTo(124, y + 48); g.lineTo(144, y + 36); g.fill();
+      g.fillStyle = '#1b2230'; g.font = '700 14px Montserrat'; g.fillText(n + '  ·  ' + d, 158, y + 32); g.fillStyle = '#6b7587'; g.font = '600 12px Montserrat'; g.fillText(t, 124, y + 66); });
+  } else { g.fillStyle = '#6b7587'; g.font = '600 14px Montserrat'; g.fillText('Available · 3 unread messages', 106, 70); }
+  softTex.needsUpdate = true;
+}
+drawSoft('idle');
+function workstation(x, z, rotY, dual = false, kit = 'phone') {
+  const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = rotY; floor.add(g);
+  box(1.4, .035, .7, oak, 0, .74, 0, g);
+  for (const s of [-1, 1]) box(.04, .72, .64, black, s * .66, .36, 0, g);
+  for (const mx of dual ? [-.33, .33] : [0]) {
+    box(.05, .3, .05, black, mx, .9, -.22, g);
+    const body = box(.62, .37, .02, black, mx, 1.1, -.22, g); if (dual) body.rotation.y = -mx * .5;
+    const s = add(new THREE.PlaneGeometry(.6, .35), kit === 'softphone' && mx === (dual ? -.33 : 0) ? softMat : screenM, 0, 0, .011, body);
+  }
+  box(.42, .02, .14, std(0x2a2a30), 0, .77, .1, g); box(.18, .05, .18, black, .52, .785, -.22, g);   // keyboard, mini PC
+  const ch = new THREE.Group(); ch.position.set(0, 0, .58); g.add(ch); chair(ch);
+  const pp = person(g); pp.position.set(0, 0, .6);
+  if (kit !== 'softphone') deskPhone(g, -.5, -.12);            // every seat gets a phone, except the app-only user
+  if (kit === 'headset' || kit === 'softphone') headset(pp, false); else if (kit === 'bt') headset(pp, true);
+  g.updateMatrixWorld(true);
+  return g.localToWorld(V(.52, .76, -.3));
+}
+function plant(x, z) { add(new THREE.CylinderGeometry(.18, .14, .45, 16), std(0xeae6df), x, .22, z, floor); add(new THREE.IcosahedronGeometry(.38, 1), std(0x3f8f4a, { roughness: .9, flatShading: true }), x, .78, z, floor); }
+
+// --- cable registry: each cable = path + color; drawn progressively by scroll ---
+const cables = [];
+const plates = [];
+function wallPlate(x, y, z, facing) { // facing: 'z' (back wall) or 'x' (left wall)
+  const g = new THREE.Group(); g.position.set(x, y, z); if (facing === 'x') g.rotation.y = Math.PI / 2; floor.add(g);
+  const plate = box(.07, .115, .008, std(0xf7f7f5, { roughness: .4 }), 0, 0, 0, g);
+  const jack = box(.016, .02, .025, std(0x2f7fe0), 0, .02, 0, g), jack2 = box(.016, .02, .025, std(0xf7f7f5), 0, -.02, 0, g);
+  plates.push({ plate, jacks: [jack, jack2] }); return g;
+}
+
+// back-wall workstations
+const deskXs = [-10.6, -8.8, -7.0, -5.2, -3.4];
+deskXs.forEach((x, i) => {
+  const s = workstation(x, -7.33, 0, i % 2 === 0, ['phone', 'headset', 'softphone', 'bt', 'phone'][i]);
+  const px = x + .52; wallPlate(px, .45, -7.93, 'z');
+  cables.push({ type: 'data', pts: [s, V(s.x, .25, s.z), V(px, .25, -7.86), V(px, .45, -7.9), V(px, .45, -8.0), V(px, PLEN, -8.0), V(px, PLEN, -7.6), V(px, PLEN, TRUNK_Z)], entryX: px });
+});
+// cubicle pod around a power pole
+box(4.2, 1.25, .06, std(0x6e6a7a, { roughness: 1 }), -7, .62, 2.5, floor);
+box(.06, 1.25, 2.2, std(0x6e6a7a, { roughness: 1 }), -7, .62, 2.5, floor);
+box(.08, CEIL, .08, std(0xb9bec6, { metalness: .8, roughness: .3 }), -7, CEIL / 2, 2.5, floor);   // power pole
+[[-8.05, 1.95, Math.PI], [-5.95, 1.95, Math.PI], [-8.05, 3.05, 0], [-5.95, 3.05, 0]].forEach(([x, z, r], i) => {
+  const s = workstation(x, z, r);
+  const dz = z < 2.5 ? -.05 : .05;
+  cables.push({ type: 'data', pts: [s, V(s.x, .1, s.z), V(-7 + (i % 2 ? .03 : -.03), .1, 2.5 + dz), V(-7 + (i % 2 ? .03 : -.03), CEIL, 2.5 + dz), V(-7, PLEN, 2.5), V(-7, PLEN, TRUNK_Z)], entryX: -7 });
+});
+// conference room: glass walls, table, TV
+const glassM = std(0xcfe3ef, { transparent: true, opacity: .18, roughness: .05, metalness: .3 });
+box(5, CEIL, .03, glassM, 3, CEIL / 2, -3.5, floor); box(.03, CEIL, 4.5, glassM, .5, CEIL / 2, -5.75, floor);
+box(5, .05, .05, std(0x9aa0a8, { metalness: .8, roughness: .3 }), 3, CEIL - .03, -3.5, floor);
+box(3.2, .05, 1.2, std(0x5a3b28, { roughness: .45 }), 3, .74, -5.75, floor); box(.2, .7, .8, black, 3, .37, -5.75, floor);
+for (let i = 0; i < 6; i++) { const c = new THREE.Group(); c.position.set(1.9 + (i % 3) * 1.1, 0, i < 3 ? -6.6 : -4.9); c.rotation.y = i < 3 ? 0 : Math.PI; floor.add(c); chair(c); }
+const logoImg = new THREE.TextureLoader().load('cortek-logo.png'); logoImg.colorSpace = THREE.SRGBColorSpace;
+const tv = box(1.45, .84, .04, black, 3, 1.45, -7.91, floor);
+const tvScreen = add(new THREE.PlaneGeometry(1.4, .79), new THREE.MeshBasicMaterial({ map: logoImg }), 0, 0, .021, tv);
+wallPlate(3.95, 1.2, -7.93, 'z');
+cables.push({ type: 'tv', pts: [V(3.4, 1.4, -7.88), V(3.95, 1.2, -7.9), V(3.95, 1.2, -8.0), V(3.95, PLEN, -8.0), V(3.95, PLEN, -7.6), V(3.95, PLEN, TRUNK_Z)], entryX: 3.95 });
+// open-office TV on the left wall
+const tv2 = box(.04, .7, 1.2, black, -11.92, 1.6, -1, floor);
+const dash = add(new THREE.PlaneGeometry(1.15, .66), screenM, .021, 0, 0, tv2); dash.rotation.y = Math.PI / 2;
+wallPlate(-11.93, 1.25, -.25, 'x');
+cables.push({ type: 'tv', pts: [V(-11.88, 1.5, -.6), V(-11.9, 1.25, -.25), V(-12.0, 1.25, -.25), V(-12.0, PLEN, -.25), V(-11.6, PLEN, -.25), V(-11.6, PLEN, TRUNK_Z)], entryX: -11.6 });
+plant(-8.6, 7.3); plant(-.8, 7.3); plant(-1.2, -7.3); plant(5.9, 6.9);
+
+// ---------- ceiling, J-hooks, ceiling devices ----------
+const ceilTex = canvasTex(512, 512, (g, w, h) => {
+  g.fillStyle = '#f4f3f0'; g.fillRect(0, 0, w, h);
+  g.fillStyle = '#c9c8c4'; for (let i = 0; i <= 4; i++) { g.fillRect(i * w / 4 - 2, 0, 4, h); g.fillRect(0, i * h / 4 - 2, w, 4); }
+  g.fillStyle = '#ffffff'; g.fillRect(w / 4 + 6, h / 4 + 6, w / 4 - 12, h / 4 - 12);
+});
+ceilTex.wrapS = ceilTex.wrapT = THREE.RepeatWrapping; ceilTex.repeat.set(18.5 / 2.4, 16 / 2.4);
+const ceilM = std(0xffffff, { map: ceilTex, emissive: 0xffffff, emissiveMap: ceilTex, emissiveIntensity: .25, transparent: true, side: THREE.DoubleSide, roughness: .9 });
+const ceiling = add(new THREE.PlaneGeometry(18.5, 16), ceilM, -2.75, CEIL, 0, floor); ceiling.rotation.x = Math.PI / 2;
+
+const steel = std(0x9ea3aa, { metalness: .8, roughness: .35 });
+for (const x of [-10, -5, 0, 5]) box(.1, .14, 16, std(0x3d4047, { metalness: .6, roughness: .5 }), x, 3.85, 0, plenum);
+const hooks = [];
+function jhook(x, z, alongZ = false) {
+  const g = new THREE.Group(); g.position.set(x, PLEN, z); plenum.add(g);
+  add(new THREE.CylinderGeometry(.007, .007, .5), steel, 0, .32, 0, g);
+  const h = add(new THREE.TorusGeometry(.1, .011, 6, 16, Math.PI), steel, 0, 0, 0, g); h.rotation.z = Math.PI; if (!alongZ) h.rotation.y = Math.PI / 2;
+  hooks.push(g); return g;
+}
+for (let x = -11.2; x <= 5.8; x += 1.4) jhook(x, TRUNK_Z);
+for (let z = -.2; z <= 2.2; z += 1.2) jhook(-7, z, true);
+for (let z = -3.8; z >= -6; z -= 1.1) jhook(5.8, z, true);
+
+const ceilDevices = [];
+const white = std(0xf5f5f3, { roughness: .35 });
+// highlight effects: Wi-Fi / audio ripples, camera view cones and floating labels (shown while the ceiling is open)
+const fx = [], tags = [], aps = [];
+const noteTex = canvasTex(64, 64, (g, w, h) => { g.fillStyle = '#46c265'; g.font = '700 52px Montserrat, sans-serif'; g.textAlign = 'center'; g.fillText('♪', w / 2, 50); });
+function label(text, color) {
+  const t = canvasTex(640, 128, (g, w, h) => {
+    g.fillStyle = 'rgba(18,16,22,.88)'; rr(g, 6, 6, w - 12, h - 12, 58);
+    g.strokeStyle = color; g.lineWidth = 7; g.beginPath(); g.roundRect(6, 6, w - 12, h - 12, 58); g.stroke();
+    g.fillStyle = color; g.beginPath(); g.arc(64, h / 2, 16, 0, 7); g.fill();
+    let fs = 50; g.font = `600 ${fs}px Montserrat`; while (g.measureText(text).width > w - 130 && fs > 24) { fs -= 2; g.font = `600 ${fs}px Montserrat`; }   // long labels shrink to fit
+    g.fillStyle = '#fff'; g.textBaseline = 'middle'; g.fillText(text, 98, h / 2 + 3);
+  });
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthTest: false, opacity: 0 }));
+  s.scale.set(1.25, .25, 1); s.renderOrder = 10; return s;
+}
+function tag(text, color, x, y, z, parent = floor) { const s = label(text, color); s.position.set(x, y, z); parent.add(s); tags.push(s); return s; }
+const glowMat = color => new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending });
+function ripples(x, z, color, maxR, speed) {
+  for (let k = 0; k < 3; k++) {
+    const m = add(new THREE.RingGeometry(.94, 1, 56), glowMat(color), x, CEIL - .07, z, floor); m.rotation.x = -Math.PI / 2;
+    fx.push({ m, kind: 'ring', maxR, speed, ph: k / 3 });
+  }
+}
+function viewCone(parent, len, radius, color, list) {
+  const geo = new THREE.ConeGeometry(radius, len, 28, 1, true); geo.translate(0, -len / 2, 0);
+  const m = add(geo, glowMat(color), 0, 0, 0, parent); list.push({ m, kind: 'cone' }); return m;
+}
+function ceilDevice(kind, x, z) {
+  const g = new THREE.Group(); g.position.set(x, CEIL - .005, z); floor.add(g);
+  if (kind === 'ap') {                                   // UniFi-style AP: white disc, glowing ring
+    g.add(G('AP')); aps.push(g);
+    ripples(x, z, 0x3aa0ff, 1.8, .45); tag('Wi-Fi access point', '#5fb4ff', x, CEIL - .34, z);
+  } else if (kind === 'speaker') {
+    g.add(G('Speaker'));
+    ripples(x, z, GREEN, 1.2, .6); tag('Music & paging', '#46c265', x, CEIL - .34, z);
+    for (let k = 0; k < 3; k++) { const n = new THREE.Sprite(new THREE.SpriteMaterial({ map: noteTex, transparent: true, opacity: 0, depthWrite: false })); n.scale.setScalar(.16); floor.add(n); fx.push({ m: n, kind: 'note', x, z, ph: k / 3 }); }
+  } else {                                               // dome camera + its field of view
+    g.add(G('Dome'));
+    const c = viewCone(g, 2.2, 1.1, 0xf07f2a, fx); c.rotation.set(.55, Math.atan2(x, z), 0, 'YXZ');   // tip toward the middle of the room
+    tag('Security camera', '#f07f2a', x, CEIL - .34, z);
+  }
+  ceilDevices.push(g);
+  const type = kind === 'ap' ? 'ap' : kind === 'speaker' ? 'speaker' : 'camera';
+  cables.push({ type, pts: [V(x, CEIL, z), V(x, PLEN - .03, z), V(x, PLEN, TRUNK_Z)], entryX: x, late: true });
+}
+ceilDevice('ap', -8.5, 1.0); ceilDevice('ap', -3.2, -5.0); ceilDevice('ap', 3.0, -5.2); ceilDevice('ap', -3.5, 5.5);
+ceilDevice('speaker', -10.2, -4.6); ceilDevice('speaker', -5.2, 5.2); ceilDevice('speaker', 1.8, -4.6); ceilDevice('speaker', -1.6, 1.6);
+ceilDevice('camera', -11.3, 7.2); ceilDevice('camera', 6.0, -3.0); ceilDevice('camera', .5, 6.6);    // corners + suite entry
+ceilDevice('camera', -1.2, -7.2); ceilDevice('camera', 3.0, -4.0); ceilDevice('camera', 11.4, -4.0); // back hall, conference, MDF
+cables.pop(); cables.push({ type: 'camera', pts: [V(11.4, CEIL, -4.0), V(11.4, 2.55, -4.0), V(11.4, 2.55, -6.25), V(9.15, 2.42, -6.25), V(9.05, 1.3, -6.25)], late: true, noTrunk: true });   // MDF camera drops straight onto the ladder
+
+// exterior: bullet cameras on the building's entry/exit doors and the parking lot
+const extFx = [];
+function bullet(x, y, z, rotY, tilt = .45) {
+  const g = G('Bullet'); g.position.set(x, y, z); g.rotation.y = rotY; g.scale.setScalar(1.3); exterior.add(g);
+  g.getObjectByName('BulletHead').rotation.set(tilt, 0, 0);                                    // aim down at the door / lot
+  const c = viewCone(g.getObjectByName('BulletLensTip'), 5 / 1.3, 2.4 / 1.3, 0xf07f2a, extFx); c.rotation.x = -Math.PI / 2;
+}
+const G0 = -4 * 3.4;                                                                          // ground-floor slab
+const doorM = std(0x0e1b27, { roughness: .08, metalness: .6 }), frameM = std(0xb6bcc4, { metalness: .7, roughness: .3 });
+box(5.2, .14, 1.5, slabM, 0, G0 + 2.95, 8.75, exterior);                                     // entry canopy
+box(2.8, 2.45, .05, doorM, 0, G0 + 1.23, 8.04, exterior); box(.06, 2.45, .07, frameM, 0, G0 + 1.23, 8.05, exterior);
+box(.05, 2.3, 1.2, doorM, 12.03, G0 + 1.15, -3, exterior);                                    // side exit
+box(1.2, 2.3, .05, doorM, -4, G0 + 1.15, -8.03, exterior);                                    // rear exit
+bullet(-2.1, G0 + 2.7, 8.05, 0); bullet(2.1, G0 + 2.7, 8.05, 0);
+bullet(12.05, G0 + 2.7, -4.1, Math.PI / 2); bullet(-2.9, G0 + 2.7, -8.05, Math.PI);
+for (const px of [-9, 9]) {                                                                   // parking-lot poles
+  add(new THREE.CylinderGeometry(.07, .09, 4.6), std(0x3a3d44, { metalness: .6 }), px, G0 + 2.3, 17, exterior);
+  bullet(px, G0 + 4.3, 16.9, Math.PI, .6);
+}
+
+// ---------- MDF room ----------
+box(5.5, .02, 4.5, std(0x8f8c87, { roughness: .7 }), 9.25, .01, -5.75, mdf);
+const mdfWallM = std(0xe9e7e3, { roughness: .9, transparent: true });
+box(.12, CEIL, 4.5, mdfWallM, 6.5, CEIL / 2, -5.75, mdf);
+box(5.5, CEIL, .12, mdfWallM, 9.25, CEIL / 2, -3.5, mdf);
+box(2.4, 1.8, .02, std(0xffffff, { map: tx('plywood.jpg', 1, 1), roughness: .9 }), 10.4, 1.5, -7.92, mdf);                 // plywood backboard
+const isp = box(.3, .4, .1, std(0xe8e8e8), 11.1, 1.6, -7.86, mdf);                             // ISP demarc
+add(new THREE.CylinderGeometry(.04, .04, .3, 16), steel, 6.5, 2.55, -6.2, mdf).rotation.z = Math.PI / 2;   // wall sleeve
+for (const dz of [-.2, .2]) box(3.3, .03, .03, steel, 8.15, 2.36, -6.2 + dz, mdf);              // ladder rack rails
+for (let x = 6.6; x <= 9.7; x += .3) box(.03, .02, .4, steel, x, 2.36, -6.2, mdf);
+box(.03, .25, .03, steel, 9.7, 2.5, -6.4, mdf); box(.03, .25, .03, steel, 9.7, 2.5, -6.0, mdf);
+
+// IDF on the front-left wall: its fiber uplink rides the trunk back to the MDF
+const IDF_X = -11.715, IDF_Y = 1.0, IDF_Z = 6.9;
+cables.push({ type: 'fiber', pts: [V(IDF_X, IDF_Y + .43, IDF_Z - .08), V(IDF_X, PLEN, IDF_Z - .08), V(-11.2, PLEN, IDF_Z - .08), V(-11.2, PLEN, TRUNK_Z)], entryX: -11.2, late: true });
+// trunk: every cable follows the same pathway into the MDF, slightly offset so it reads as a bundle
+cables.forEach((c, i) => {
+  if (c.noTrunk) return;
+  const a = i * 2.39996, r = .03 + (i % 6) * .0135;          // a fuller, rounder bundle
+  const o = V(Math.cos(a) * r, Math.sin(a) * r * .8, Math.cos(a) * r);
+  const trunk = [V(5.8, PLEN, TRUNK_Z), V(5.8, PLEN, -6.2), V(6.25, 2.55, -6.2), V(6.8, 2.4, -6.2), V(9.0, 2.4, -6.22), V(9.02, 1.3, -6.27)];
+  const last = c.pts[c.pts.length - 1];
+  c.pts[c.pts.length - 1] = last.clone().add(V(0, o.y, o.z));
+  c.pts.push(...trunk.map(p => p.clone().add(o)));
+});
+const cableCols = { fiber: 0x19c3d4, data: 0x2f7fe0, ap: 0xf2c230, speaker: 0xc9cbd0, camera: 0xf07f2a, tv: 0x8a4fd0 };
+for (const c of cables) {
+  const path = new THREE.CurvePath();
+  for (let i = 0; i < c.pts.length - 1; i++) if (c.pts[i].distanceTo(c.pts[i + 1]) > 1e-4) path.add(new THREE.LineCurve3(c.pts[i], c.pts[i + 1]));
+  const len = path.getLength();
+  const geo = new THREE.TubeGeometry(path, Math.max(24, Math.round(len * 10)), .013, 6, false);
+  c.mesh = add(geo, std(cableCols[c.type], { roughness: .45 }), 0, 0, 0, cablesG);
+  c.count = geo.index.count; c.path = path; geo.setDrawRange(0, 0);
+  c.pulse = add(new THREE.SphereGeometry(.022, 10, 8), new THREE.MeshBasicMaterial({ color: 0x7dffa0 }), 0, 0, 0, cablesG); c.pulse.visible = false;
+}
+
+// velcro straps dressing the bundle: between J-hooks, down the run to the MDF, and across the ladder rack
+const velcroM = std(0x1d1d22, { roughness: .95 }), strapGeo = new THREE.CylinderGeometry(.125, .125, .022, 28, 1, true), straps = [];
+const strap = (x, y, z, axis) => { const m = add(strapGeo, velcroM, x, y, z, cablesG); m.material.side = THREE.DoubleSide; if (axis === 'x') m.rotation.z = Math.PI / 2; else m.rotation.x = Math.PI / 2; straps.push(m); };
+for (let x = -10.5; x <= 5.2; x += 1.4) strap(x, PLEN, TRUNK_Z, 'x');
+for (const z of [-3.4, -4.4, -5.5]) strap(5.8, PLEN, z, 'z');
+for (const x of [7.2, 7.9, 8.6]) strap(x, 2.4, -6.2, 'x');
+// protective braided sleeve over the drop from the ladder rack into the rack (grows down as the cables land)
+const braid = canvasTex(64, 256, (g, w, h) => {
+  g.fillStyle = '#141418'; g.fillRect(0, 0, w, h); g.strokeStyle = '#3b3b45'; g.lineWidth = 3;
+  for (let y = -64; y < h + 64; y += 12) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y + 32); g.stroke(); g.beginPath(); g.moveTo(0, y + 32); g.lineTo(w, y); g.stroke(); }
+});
+braid.wrapS = braid.wrapT = THREE.RepeatWrapping; braid.repeat.set(4, 7);
+const sleeveGeo = new THREE.CylinderGeometry(.1, .1, 1.1, 28, 1, true); sleeveGeo.translate(0, -.55, 0);
+const sleeve = add(sleeveGeo, std(0xffffff, { map: braid, roughness: .85, side: THREE.DoubleSide }), 9.01, 2.4, -6.245, mdf);
+const collars = [2.4, 1.32].map(y => { const c = add(new THREE.TorusGeometry(.1, .012, 8, 28), std(0x222228, { roughness: .5 }), 9.01, y, -6.245, mdf); c.rotation.x = Math.PI / 2; return c; });
+const sleeveTag = tag('Protective sleeve', '#46c265', 8.62, 1.98, -6.05, mdf); sleeveTag.scale.set(.5, .1, 1);
+tags.splice(tags.indexOf(sleeveTag), 1);                   // this label has its own timing
+
+// ---------- the rack (focal point) ----------
+const U = .04445, RW = .4826, FRONT = .29;
+const uy = u => .1 + (u - 1) * U;
+const rack = new THREE.Group(); rack.position.set(9.25, 0, -6.0); scene.add(rack);
+const railTex = canvasTex(32, 512, (g, w, h) => { g.fillStyle = '#dfe2e6'; g.fillRect(0, 0, w, h); g.fillStyle = '#3a3d44'; for (let y = 4; y < h; y += 512 / 72) g.fillRect(12, y, 8, 3); });
+const postM = std(0x2a2a30, { metalness: .6, roughness: .4 }), railM = std(0xffffff, { map: railTex, metalness: .5, roughness: .45 });
+const rackModel = G('Rack'); rack.add(rackModel);                         // 4-post frame, square-hole rails, finger managers
+railTex.wrapS = railTex.wrapT = THREE.RepeatWrapping;
+const rackWhite = std(0xf1f2f4, { roughness: .42, metalness: .15 }), mgrWhite = std(0xe8eaed, { roughness: .55 });   // white rack + managers
+const RACK_SCALE = 1.174; rackModel.scale.y = RACK_SCALE; railTex.repeat.y = 1.32;   // stretch the 24U Blender frame to 32U
+rackModel.traverse(o => {
+  if (!o.isMesh) return;
+  if (o.material.name === 'RailHoles') { o.geometry = new THREE.BoxGeometry(.034, 1.2, .002); o.material = railM; }
+  else if (o.material.name === 'RackBlack') o.material = rackWhite;
+  else if (o.material.name === 'MgrPlastic') o.material = mgrWhite;
+});
+function faceTex(u, draw) { const h = Math.round(1024 * u * U / RW); return canvasTex(1024, h, (g, w, hh) => draw(g, w, hh)); }
+const X = x => (x / RW + .5) * 1024;                     // meters (rack-local x) → texture px
+// UniFi-style gear: brushed silver-white fronts, small blue-lit status screens, black ports
+const silver = (g, w, h) => { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#f4f5f7'); gr.addColorStop(1, '#d8dbe0'); g.fillStyle = gr; g.fillRect(0, 0, w, h); g.fillStyle = 'rgba(255,255,255,.7)'; g.fillRect(0, 0, w, 2); };
+const port = (g, x, y, s = 13) => { g.fillStyle = '#17181c'; rr(g, x - s, y - s * .8, s * 2, s * 1.6, 2); g.fillStyle = '#2c2e34'; g.fillRect(x - s * .6, y - s * .2, s * 1.2, s * .9); };
+const lcd = (g, x, y, w, h, draw) => { g.fillStyle = '#0b0f16'; rr(g, x, y, w, h, 5); g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip(); draw && draw(x, y, w, h); g.restore(); };
+const uLogo = (g, x, y, r) => { g.strokeStyle = '#8f96a1'; g.lineWidth = 3; g.beginPath(); g.arc(x, y + r * .15, r * .55, 0, Math.PI); g.moveTo(x - r * .55, y + r * .15); g.lineTo(x - r * .55, y - r * .6); g.moveTo(x + r * .55, y + r * .15); g.lineTo(x + r * .55, y - r * .6); g.stroke(); };
+const vents = (g, x0, x1, y, hh, step = 12) => { g.fillStyle = '#bfc3c9'; for (let x = x0; x < x1; x += step) rr(g, x, y, step * .45, hh, 2); };
+function plateFace(g, w, h, title, ports, color) {       // generic 1U rack appliance: status screen, ports, name
+  silver(g, w, h); lcd(g, X(-.232), h * .2, 64, h * .6, (x, y, ww, hh) => { g.fillStyle = color; g.fillRect(x + 10, y + hh * .35, ww - 20, hh * .3); });
+  for (let i = 0; i < ports; i++) port(g, X(-.14 + i * .024), h * .5, 10);
+  if (!ports) for (let i = 0; i < 10; i++) { g.fillStyle = '#2a2c31'; g.fillRect(X(-.14 + i * .022) - 7, h * .3, 14, h * .4); g.fillStyle = '#b8bcc3'; g.beginPath(); g.arc(X(-.14 + i * .022), h * .5, 4, 0, 7); g.fill(); }
+  g.fillStyle = '#6a707a'; g.font = '600 17px Montserrat'; g.textAlign = 'right'; g.fillText(title, w - 70, h * .6); g.textAlign = 'left';
+}
+const SWX = i => -.185 + i * .0142;                 // 24 ports in one row; the patch panel below lines up port for port
+const CORD = { red: 0xe0303a, yellow: 0xf2c230, blue: 0x2f7fe0, green: 0x1fa06a, white: 0xe6e6ea, orange: 0xf07f2a, purple: 0x9a55d8 };
+const groups = list => list.flatMap(([n, c]) => Array(n).fill(CORD[c]));
+const PAIR_COLS = [groups([[14, 'yellow'], [10, 'blue']]), groups([[12, 'green'], [10, 'white'], [2, 'orange']]), groups([[11, 'red'], [7, 'purple'], [4, 'blue'], [2, 'yellow']])];
+const hex = c => '#' + c.toString(16).padStart(6, '0');
+const patchFace = cols => (g, w, h) => { g.fillStyle = '#1b1c20'; g.fillRect(0, 0, w, h);   // black keystone panel
+  for (let i = 0; i < 24; i++) { const x = X(SWX(i)); g.fillStyle = '#2c2e34'; rr(g, x - 12, h * .2, 24, h * .5, 2); g.fillStyle = hex(cols[i]); g.fillRect(x - 11, h * .2, 22, h * .13); g.fillStyle = '#0b0b0d'; g.fillRect(x - 7, h * .4, 14, h * .22);
+    g.fillStyle = '#9aa0a8'; g.font = '600 10px Montserrat'; g.textAlign = 'center'; g.fillText(String(i + 1), x, h * .9); } g.textAlign = 'left'; };
+const faces = {
+  fiber: (g, w, h) => { silver(g, w, h); for (let i = 0; i < 12; i++) { g.fillStyle = '#1b1c20'; rr(g, X(-.17 + i * .03) - 15, h / 2 - 11, 30, 22, 3); g.fillStyle = '#2ec4d6'; rr(g, X(-.17 + i * .03) - 11, h / 2 - 6, 9, 12, 2); rr(g, X(-.17 + i * .03) + 2, h / 2 - 6, 9, 12, 2); } g.fillStyle = '#7b818b'; g.font = '600 15px Montserrat'; g.fillText('FIBER · OM4', 28, h - 12); },
+  switch: (g, w, h) => { silver(g, w, h); lcd(g, X(-.232), h * .2, 58, h * .6, (x, y, ww, hh) => { g.fillStyle = '#4aa3ff'; g.font = '700 13px Montserrat'; g.fillText('24', x + 8, y + hh * .5); g.fillStyle = '#2d6fd0'; g.fillRect(x + 8, y + hh * .7, ww - 16, 3); });
+    for (let i = 0; i < 24; i++) port(g, X(SWX(i)), h * .5, 11);
+    for (const x of [.175, .205]) { g.fillStyle = '#2a2c31'; rr(g, X(x) - 15, h * .3, 30, h * .4, 3); g.fillStyle = '#101114'; g.fillRect(X(x) - 11, h * .38, 22, h * .24); } },
+  udm: (g, w, h) => { silver(g, w, h);
+    lcd(g, X(-.232), h * .14, 70, h * .72, (x, y, ww, hh) => { g.strokeStyle = '#4aa3ff'; g.lineWidth = 4; g.beginPath(); g.arc(x + ww / 2, y + hh / 2, hh * .32, -1.2, 4.4); g.stroke(); g.fillStyle = '#cfe6ff'; g.beginPath(); g.arc(x + ww / 2, y + hh / 2, 4, 0, 7); g.fill(); });
+    for (let i = 0; i < 8; i++) port(g, X(-.13 + (i % 4) * .02), h * (i < 4 ? .32 : .7), 11); port(g, X(-.03), h * .5, 11); g.fillStyle = '#4aa3ff'; g.fillRect(X(-.03) - 10, h * .14, 20, 3);
+    for (const x of [0, .03]) { g.fillStyle = '#2a2c31'; rr(g, X(x) - 15, h * .3, 30, h * .4, 3); }
+    g.fillStyle = '#e8eaee'; rr(g, X(.075), h * .12, X(.22) - X(.075), h * .76, 6); vents(g, X(.085), X(.21), h * .24, h * .52, 13); },
+  voip: (g, w, h) => plateFace(g, w, h, 'PHONE SYSTEM', 8, '#5fb4ff'),
+  surge: (g, w, h) => plateFace(g, w, h, 'SURGE PROTECTION', 12, '#f2c230'),
+  lock: (g, w, h) => plateFace(g, w, h, 'LOCK POWER 12/24V', 0, '#e0453a'),
+  lte: (g, w, h) => plateFace(g, w, h, 'LTE / 5G BACKUP', 2, '#46c265'),
+  env: (g, w, h) => { silver(g, w, h); lcd(g, X(-.232), h * .18, 150, h * .64, (x, y, ww, hh) => { g.fillStyle = '#6fd3ff'; g.font = '700 22px Montserrat'; g.fillText('71°F  42%', x + 12, y + hh * .7); }); g.fillStyle = '#6a707a'; g.font = '600 17px Montserrat'; g.fillText('ENVIRONMENT', X(.05), h * .6); },
+  access: (g, w, h) => { silver(g, w, h); lcd(g, X(-.232), h * .2, 64, h * .6, (x, y, ww, hh) => { g.fillStyle = '#46c265'; g.font = '700 12px Montserrat'; g.fillText('DOORS', x + 8, y + hh * .62); });
+    for (let i = 0; i < 8; i++) { port(g, X(-.12 + i * .028), h * .5, 11); g.fillStyle = '#46c265'; g.fillRect(X(-.12 + i * .028) - 3, h * .14, 6, 4); } g.fillStyle = '#6a707a'; g.font = '600 17px Montserrat'; g.fillText('ACCESS HUB', X(.12), h * .6); },
+  blank: (g, w, h) => { silver(g, w, h); vents(g, X(-.2), X(.2), h * .38, h * .24, 16); },
+  mgr: (g, w, h) => { silver(g, w, h); g.fillStyle = '#131418'; rr(g, 70, h * .34, w - 140, h * .32, 10); g.strokeStyle = '#2b2d33'; g.lineWidth = 2; for (let x = 80; x < w - 80; x += 7) { g.beginPath(); g.moveTo(x, h * .36); g.lineTo(x + 3, h * .64); g.stroke(); } },
+  shelf: (g, w, h) => { silver(g, w, h); vents(g, 70, w - 70, h * .38, h * .26, 22); },
+  pdu: (g, w, h) => { silver(g, w, h); lcd(g, 60, h * .2, 90, h * .6, (x, y, ww, hh) => { g.fillStyle = '#4aa3ff'; g.font = '700 16px Montserrat'; g.fillText('3.2A', x + 12, y + hh * .66); });
+    for (let i = 0; i < 8; i++) { const x = 190 + i * 88; g.fillStyle = '#2a2c31'; rr(g, x, h * .18, 56, h * .64, 9); g.fillStyle = '#0b0b0d'; g.fillRect(x + 16, h * .3, 5, 14); g.fillRect(x + 35, h * .3, 5, 14); g.beginPath(); g.arc(x + 28, h * .66, 4, 0, 7); g.fill(); } },
+  amp: (g, w, h) => { silver(g, w, h); g.fillStyle = '#c6cad0'; g.beginPath(); g.arc(X(.17), h / 2, h * .3, 0, 7); g.fill(); g.fillStyle = '#9aa0a8'; g.beginPath(); g.arc(X(.17), h / 2, h * .2, 0, 7); g.fill();
+    lcd(g, X(-.2), h * .3, 290, h * .4, (x, y) => { for (let i = 0; i < 12; i++) { g.fillStyle = i < 8 ? '#46c265' : i < 10 ? '#f2c230' : '#e0564a'; g.fillRect(x + 10 + i * 23, y + 8, 16, h * .4 - 16); } });
+    g.fillStyle = '#6a707a'; g.font = '20px Audiowide'; g.fillText('AUDIO 4×120W', X(.02), h * .6); },
+  nvr: (g, w, h) => { silver(g, w, h); lcd(g, X(-.232), h * .16, 64, h * .68, (x, y, ww, hh) => { g.fillStyle = '#4aa3ff'; g.font = '700 12px Montserrat'; g.fillText('REC', x + 12, y + hh * .6); });
+    for (let i = 0; i < 4; i++) { const x = X(-.08) + i * 118; g.fillStyle = '#e6e8ec'; rr(g, x, h * .12, 108, h * .76, 6); vents(g, x + 10, x + 80, h * .3, h * .4, 10); g.fillStyle = '#4aa3ff'; g.fillRect(x + 90, h * .44, 8, 8); } uLogo(g, X(-.13), h * .5, 20); },
+  bbu: (g, w, h) => { silver(g, w, h); lcd(g, X(-.06), h * .22, 150, h * .5, (x, y) => { g.fillStyle = '#6fd3ff'; g.font = '600 26px Montserrat'; g.fillText('100%', x + 38, y + h * .34); }); vents(g, 60, X(-.09), h * .15, h * .7, 16); vents(g, X(.05), w - 60, h * .15, h * .7, 16); },
+};
+PAIR_COLS.forEach((cols, k) => { faces['patch' + 'ABC'[k]] = patchFace(cols); });
+const sideM = std(0xc9cdd3, { metalness: .45, roughness: .4 });
+const devices = [];
+function device(kind, u, units, depth = .4, extra) {
+  const hgt = units * U - .002;
+  const mats = [sideM, sideM, sideM, sideM, new THREE.MeshStandardMaterial({ map: faceTex(units, faces[kind]), roughness: .45, metalness: .25 }), sideM];
+  const g = new THREE.Group(); rack.add(g);
+  const m = add(new THREE.BoxGeometry(RW, hgt, depth), mats, 0, uy(u) + units * U / 2, FRONT - depth / 2 + .004, g);
+  const ears = G(units > 1 ? 'Ears2U' : 'Ears1U'); ears.position.set(0, uy(u) + units * U / 2, FRONT + .004); g.add(ears);
+  if (extra) extra(g, uy(u), units);
+  const d = { kind, u, units, g, y: uy(u) + units * U / 2, front: FRONT + .004 }; devices.push(d); return d;
+}
+// rack layout, bottom to top (devices slide in top-down; see installOrder)
+device('bbu', 1, 2, .45);
+device('pdu', 3, 1, .2);
+device('amp', 4, 2, .35);
+device('voip', 6, 1, .3);                       // phone system gateway / paging interface
+device('nvr', 7, 1, .38);                       // records every camera
+device('surge', 8, 1, .12);                     // PoE surge protection for outdoor cameras
+device('lock', 9, 1, .3);                       // door lock power supply
+const trayM = std(0xeef0f2, { roughness: .4, metalness: .2 });
+function shelfTray(g, y) {                                    // vented cantilever shelf, lipped on three sides
+  box(RW - .012, .004, .38, trayM, 0, y + .002, FRONT - .19, g);
+  for (const sx of [-1, 1]) box(.004, .024, .38, trayM, sx * (RW / 2 - .008), y + .012, FRONT - .19, g);
+  box(RW - .012, .02, .004, trayM, 0, y + .01, FRONT - .378, g);
+}
+const modemD = device('shelf', 10, 1, .006, (g, y) => {
+  shelfTray(g, y); const modem = G('Modem'); modem.position.set(-.1, y + .004, FRONT - .12); g.add(modem);
+});
+device('lte', 12, 1, .25, (g, y) => { for (const sx of [-1, 1]) { const a = add(new THREE.CylinderGeometry(.006, .006, .16, 8), black, sx * .2, y + U + .08, FRONT - .05, g); a.rotation.z = sx * .2; } });   // LTE/5G backup
+const udmD = device('udm', 13, 1, .3);
+device('mgr', 14, 1, .08);
+const ppC = device('patchC', 15, 1, .08), swC = device('switch', 16, 1, .3);
+device('mgr', 17, 1, .08);
+const ppB = device('patchB', 18, 1, .08), swB = device('switch', 19, 1, .3);
+device('mgr', 20, 1, .08);
+const ppA = device('patchA', 21, 1, .08), swA = device('switch', 22, 1, .3);
+device('mgr', 23, 1, .08);
+device('access', 24, 1, .25);                   // door access hub: powers and controls the readers
+
+// camera monitor on a rack shelf: a live 16-camera wall (UniFi Protect-style)
+const camCanvas = document.createElement('canvas'); camCanvas.width = 1024; camCanvas.height = 600;
+const camTex = new THREE.CanvasTexture(camCanvas); camTex.colorSpace = THREE.SRGBColorSpace; camTex.flipY = false;   // glTF UVs
+const monMat = new THREE.MeshBasicMaterial({ map: camTex, color: 0x000000, toneMapped: false });
+const monD = device('shelf', 25, 1, .006, (g, y) => {
+  shelfTray(g, y); const mon = G('Monitor'); mon.position.set(0, y + .004, FRONT - .15); g.add(mon);
+  mon.getObjectByName('MonScreen').material = monMat;
+});
+device('env', 31, 1, .2);                        // temperature & humidity monitor
+const fiberD = device('fiber', 32, 1, .2);      // fiber patch panel on top: backbone to every IDF
+const CAMS = [['FRONT ENTRY', 'door'], ['REAR EXIT', 'door2'], ['SIDE DOOR', 'side'], ['PARKING N', 'lot'], ['PARKING S', 'lot2'], ['LOBBY', 'lobby'], ['RECEPTION', 'lobby2'], ['HALLWAY', 'hall'],
+  ['OPEN OFFICE', 'office'], ['CONFERENCE', 'conf'], ['BREAK ROOM', 'break'], ['MDF · RACK', 'rack'], ['LOADING DOCK', 'dock'], ['STAIRWELL', 'stair'], ['STORAGE', 'store'], ['ROOF', 'roof']];
+function walker(g, x, y, s, shirt) { g.fillStyle = shirt; rr(g, x - s * .32, y - s * 1.1, s * .64, s * .8, s * .2); g.fillStyle = '#2b2f38'; g.fillRect(x - s * .25, y - s * .35, s * .5, s * .45); g.fillStyle = '#c99a78'; g.beginPath(); g.arc(x, y - s * 1.3, s * .22, 0, 7); g.fill(); }
+function camScene(g, type, x, y, w, h, t, i) {
+  g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip();
+  const out = /door|side|lot|dock|roof/.test(type), vx = x + w * .5, vy = y + h * .42;
+  if (out) {
+    const sky = g.createLinearGradient(0, y, 0, y + h * .45); sky.addColorStop(0, '#7f9cb8'); sky.addColorStop(1, '#b9c8d4'); g.fillStyle = sky; g.fillRect(x, y, w, h);
+    g.fillStyle = type.startsWith('lot') ? '#4b4f56' : '#8e9093'; g.fillRect(x, y + h * .55, w, h * .45);
+  } else {
+    g.fillStyle = '#c3c0ba'; g.fillRect(x, y, w, h); g.fillStyle = '#8f8b85'; g.beginPath(); g.moveTo(x, y + h); g.lineTo(vx - w * .18, vy + h * .12); g.lineTo(vx + w * .18, vy + h * .12); g.lineTo(x + w, y + h); g.fill();
+    g.fillStyle = '#dcdad6'; g.beginPath(); g.moveTo(x, y); g.lineTo(vx - w * .18, vy - h * .2); g.lineTo(vx + w * .18, vy - h * .2); g.lineTo(x + w, y); g.fill();
+    g.fillStyle = '#b3afa8'; g.fillRect(vx - w * .18, vy - h * .2, w * .36, h * .32);
+  }
+  const walk = (a, sp) => (a + t * sp) % 1;
+  if (type === 'door' || type === 'door2' || type === 'side') {
+    g.fillStyle = '#5f6873'; g.fillRect(x, y + h * .08, w, h * .5); g.fillStyle = '#18242f'; g.fillRect(vx - w * .16, y + h * .18, w * .32, h * .4); g.fillStyle = '#aab1b9'; g.fillRect(vx - 1, y + h * .18, 2, h * .4);
+    if (type === 'side') { g.fillStyle = '#2f5d3a'; g.fillRect(x + w * .72, y + h * .44, w * .2, h * .16); }
+    walker(g, x + w * (.15 + walk(i * .3, .07) * .7), y + h * .82, h * .22, '#3d5a80');
+  } else if (type.startsWith('lot')) {
+    g.strokeStyle = '#e8e4d0'; g.lineWidth = 2; for (let k = 0; k < 7; k++) { g.beginPath(); g.moveTo(x + k * w / 6, y + h * .6); g.lineTo(x + k * w / 6 - 18, y + h); g.stroke(); }
+    ['#9c2f2f', '#e8e8ea', '#27364a', '#6d6f73', '#2e5e4e'].forEach((c, k) => { if ((k + i) % 3 === 2) return; g.fillStyle = c; rr(g, x + 10 + k * w / 5, y + h * .68, w / 5 - 16, h * .2, 6); });
+    g.fillStyle = '#3a3d44'; g.fillRect(x + w * .86, y + h * .1, 4, h * .5);
+    walker(g, x + w * walk(.2 + i * .1, .05), y + h * .64, h * .14, '#e07a5f');
+  } else if (type === 'dock') { g.fillStyle = '#6a707a'; g.fillRect(x, y + h * .08, w, h * .5); g.fillStyle = '#9aa0a8'; for (let k = 0; k < 8; k++) g.fillRect(vx - w * .22, y + h * .16 + k * h * .045, w * .44, h * .03); g.fillStyle = '#e8e8ea'; rr(g, x + w * .05, y + h * .5, w * .38, h * .3, 4); }
+  else if (type === 'roof') { g.fillStyle = '#7d8187'; g.fillRect(x, y + h * .45, w, h * .55); g.fillStyle = '#b7bbc0'; rr(g, x + w * .15, y + h * .5, w * .25, h * .2, 3); rr(g, x + w * .55, y + h * .55, w * .3, h * .22, 3); }
+  else if (type === 'hall') { g.fillStyle = '#6d5a48'; for (const s of [-1, 1]) g.fillRect(vx + s * w * .3 - 6, vy - h * .1, 12, h * .35); walker(g, vx + Math.sin(t * .6 + i) * w * .08, vy + h * (.2 + walk(0, .08) * .3), h * .2, '#2a9d8f'); }
+  else if (type === 'office' || type === 'conf' || type === 'break') {
+    const rows = type === 'office' ? 2 : 1;
+    for (let r = 0; r < rows; r++) for (let k = 0; k < 3; k++) { g.fillStyle = type === 'conf' ? '#5a3b28' : '#c9a77c'; g.fillRect(x + w * (.12 + k * .28), y + h * (.62 + r * .16), w * .22, h * .06); if (type === 'office') { g.fillStyle = '#6fa8ff'; g.fillRect(x + w * (.16 + k * .28), y + h * (.52 + r * .16), w * .12, h * .08); } }
+    if (type === 'conf') { g.fillStyle = '#111'; g.fillRect(vx - w * .12, vy - h * .12, w * .24, h * .14); g.fillStyle = '#6c3aa8'; g.fillRect(vx - w * .1, vy - h * .1, w * .2, h * .1); }
+    if (type === 'break') { g.fillStyle = '#e9e9ea'; g.fillRect(x + w * .75, y + h * .25, w * .16, h * .5); }
+    walker(g, x + w * (.2 + walk(i * .2, .04) * .6), y + h * .9, h * .2, '#6c3aa8');
+  } else if (type === 'lobby' || type === 'lobby2') { g.fillStyle = '#e6e3de'; rr(g, vx - w * .25, y + h * .6, w * .5, h * .2, 4); g.fillStyle = '#46c265'; g.beginPath(); g.arc(vx, vy - h * .05, h * .08, 0, 7); g.fill(); g.fillStyle = '#6c3aa8'; g.fillRect(vx - w * .12, vy - h * .05, w * .24, 3); walker(g, x + w * (.1 + walk(i * .4, .06) * .8), y + h * .95, h * .22, '#d4a373'); }
+  else if (type === 'rack') { g.fillStyle = '#2a2b30'; g.fillRect(x, y, w, h); g.fillStyle = '#111'; g.fillRect(vx - w * .15, y + h * .1, w * .3, h * .85); for (let k = 0; k < 10; k++) { g.fillStyle = '#d8dbe0'; g.fillRect(vx - w * .13, y + h * (.14 + k * .075), w * .26, h * .05); if (Math.sin(t * 9 + k * 3) > 0) { g.fillStyle = '#4aa3ff'; g.fillRect(vx - w * .1, y + h * (.155 + k * .075), 4, 3); } } }
+  else if (type === 'stair') { g.strokeStyle = '#8a8680'; g.lineWidth = 3; for (let k = 0; k < 9; k++) { g.beginPath(); g.moveTo(x + w * .2, y + h * (.95 - k * .09)); g.lineTo(x + w * .8, y + h * (.95 - k * .09)); g.stroke(); } }
+  else if (type === 'store') { g.fillStyle = '#7a6a58'; for (const s of [.1, .7]) for (let k = 0; k < 4; k++) g.fillRect(x + w * s, y + h * (.2 + k * .18), w * .2, h * .04); g.fillStyle = '#b08a5c'; rr(g, x + w * .38, y + h * .66, w * .2, h * .18, 3); }
+  g.fillStyle = 'rgba(255,255,255,.05)'; for (let k = 0; k < 40; k++) g.fillRect(x + Math.random() * w, y + Math.random() * h, 2, 2);   // sensor grain
+  g.restore();
+}
+function drawCams(t) {
+  const g = camCanvas.getContext('2d'), W = 1024, H = 600;
+  g.fillStyle = '#101114'; g.fillRect(0, 0, W, H);
+  g.fillStyle = '#16181c'; g.fillRect(0, 0, W, 34); g.fillStyle = '#4aa3ff'; g.font = '700 16px Montserrat'; g.fillText('CorTek Protect', 14, 23);
+  g.fillStyle = '#9aa1ab'; g.font = '600 13px Montserrat'; const s = Math.floor(t) % 60, m = 32 + Math.floor(t / 60) % 28;
+  g.fillText(`16 cameras · all recording · 2:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')} PM`, 640, 22);
+  const gap = 6, tw = (W - gap * 5) / 4, th = (H - 34 - gap * 5) / 4;
+  CAMS.forEach(([name, type], i) => {
+    const x = gap + (i % 4) * (tw + gap), y = 34 + gap + Math.floor(i / 4) * (th + gap);
+    camScene(g, type, x, y, tw, th, t, i);
+    g.font = '600 11px Montserrat'; g.fillStyle = 'rgba(0,0,0,.55)'; rr(g, x + 5, y + th - 22, g.measureText(name).width + 22, 17, 4);
+    g.fillStyle = '#fff'; g.fillText(name, x + 16, y + th - 9);
+    g.fillStyle = Math.sin(t * 4 + i) > -.3 ? '#e0453a' : '#5a2320'; g.beginPath(); g.arc(x + 12, y + th - 13.5, 3, 0, 7); g.fill();
+  });
+  camTex.needsUpdate = true;
+}
+drawCams(0);
+
+const installOrder = [...devices].sort((a, b) => b.u - a.u);   // top-down
+// name every system as it goes in (alternating sides so neighbours don't overlap)
+const RACK_NAMES = { env: 'Temp & humidity monitor', lte: 'LTE / 5G backup internet', voip: 'Phone system gateway', surge: 'Surge protection', lock: 'Door lock power', fiber: 'Fiber patch panel', access: 'Door access hub', mgr: 'Cable managers', switch: 'PoE switches', patchA: 'Patch panels (labeled)', udm: 'Firewall / gateway', pdu: 'Power (PDU)', amp: 'Audio amplifier', nvr: 'Camera recorder', bbu: 'Battery backup' };
+const rackTags = [];
+devices.forEach(d => {
+  const name = d.kind === 'shelf' ? (d.u === 10 ? 'ISP modem' : 'Camera monitor') : (d.kind === 'switch' && d.u !== 22) || (d.kind === 'mgr' && d.u !== 23) ? null : RACK_NAMES[d.kind];
+  if (!name) return;
+  const side = rackTags.length % 2 ? -1 : 1, t = tag(name, '#46c265', 9.25 + side * .52, d.y, -5.72);
+  tags.splice(tags.indexOf(t), 1); t.scale.set(.36, .072, 1); rackTags.push({ t, d });
+});
+
+// link LEDs (blink once the rack is live): UniFi's white-blue
+const ledMats = [0, 1, 2].map(() => new THREE.MeshBasicMaterial({ color: 0x9fd4ff, transparent: true, opacity: 0 }));
+const ledGeo = new THREE.PlaneGeometry(.004, .003);
+for (const sw of [swA, swB, swC]) for (let i = 0; i < 24; i++) add(ledGeo, ledMats[(i * 7) % 3], SWX(i) + .005, sw.y + .014, sw.front + .001, sw.g);
+for (let i = 0; i < 8; i++) add(ledGeo, ledMats[i % 3], -.124 + (i % 4) * .02, udmD.y + (i < 4 ? .009 : -.008), udmD.front + .001, udmD.g);
+
+// rack cords: patch cords, fiber, WAN, coax
+const rackCords = [];
+function cord(pts, color, r, a, b) {
+  const curve = new THREE.CatmullRomCurve3(pts);
+  const geo = new THREE.TubeGeometry(curve, 24, r, 5, false); geo.setDrawRange(0, 0);
+  const m = add(geo, std(color, { roughness: .45 }), 0, 0, 0, rack); rackCords.push({ m, count: geo.index.count, a, b }); return m;
+}
+// short patch cords, as installed: switch on top, panel port directly below, one short rounded swoop per port.
+// UniFi Etherlighting cords: the plug at the switch end glows in the cord's color once the rack is live.
+const bootGeo = new THREE.BoxGeometry(.0105, .0085, .014), glowGeo = new THREE.PlaneGeometry(.02, .016);
+const etherGlow = [];
+function loopCord(x, ys, yp, color, a, b) {
+  const zf = FRONT + .014, mat = std(color, { roughness: .45 });
+  const geo = new THREE.TubeGeometry(new THREE.CubicBezierCurve3(V(x, ys, zf), V(x - .013, ys - .002, zf + .034), V(x - .013, yp + .004, zf + .03), V(x, yp, zf)), 22, .0022, 6, false);
+  geo.setDrawRange(0, 0);
+  const m = add(geo, mat, 0, 0, 0, rack);
+  const lit = std(color, { roughness: .3, emissive: color, emissiveIntensity: 0 });
+  const boots = [add(bootGeo, lit, x, ys, FRONT + .01, rack), add(bootGeo, mat, x, yp, FRONT + .01, rack)]; boots.forEach(bt => bt.visible = false);
+  const glow = add(glowGeo, new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }), x, ys, FRONT + .019, rack);
+  etherGlow.push({ lit, glow });
+  rackCords.push({ m, count: geo.index.count, a, b, boots });
+}
+const portCol = i => i < 16 ? 0x2f7fe0 : i < 20 ? 0xf2c230 : i < 22 ? 0xf07f2a : 0xc9cbd0;
+[[swA, ppA], [swB, ppB], [swC, ppC]].forEach(([sw, pp], k) => {
+  for (let i = 0; i < 24; i++) { const a = .745 + k * .025 + i * .0009; loopCord(SWX(i), sw.y, pp.y, PAIR_COLS[k][i], a, a + .02); }
+});
+const fiberCol = 0x19c3d4, sfpY = d => d.y;
+const fiberRoute = (x1, d1, x2, d2, a) => cord([V(x1, sfpY(d1), FRONT + .012), V(x1, sfpY(d1), FRONT + .06), V(.3, sfpY(d1), FRONT + .07), V(.3, sfpY(d2), FRONT + .07), V(x2, sfpY(d2), FRONT + .06), V(x2, sfpY(d2), FRONT + .012)], fiberCol, .0026, a, a + .035);
+fiberRoute(.03, udmD, .175, swA, .85);           // gateway SFP+ → core switch
+fiberRoute(.205, swA, .175, swB, .86);            // switch A → B
+fiberRoute(.205, swB, .175, swC, .87);            // switch B → C
+fiberRoute(-.02, fiberD, .205, swC, .875);       // building backbone → switch C
+cord([V(-.03, udmD.y, FRONT + .012), V(-.03, udmD.y - .01, FRONT + .05), V(-.12, modemD.y + U, FRONT + .03), V(-.12, modemD.y + U, FRONT - .03)], 0xe6e6e6, .0026, .86, .885);  // WAN
+// coax from the ISP demarc on the backboard, over the ladder rack, down the right manager to the modem
+cord([V(1.85, 1.6, -1.86), V(1.6, 2.35, -1.9), V(.6, 2.42, -.25), V(.35, 1.3, .15), V(.35, modemD.y + U, .15), V(-.02, modemD.y + U, FRONT - .12)], 0x111113, .0045, .86, .89);
+
+// ---------- 3D CorTek logo ----------
+const lgGreen = std(GREEN, { emissive: GREEN, emissiveIntensity: .35, metalness: .3, roughness: .35 });
+const lgPurple = std(PURPLE, { emissive: PURPLE, emissiveIntensity: .3, metalness: .3, roughness: .35 });
+function hexShape(r) { const s = new THREE.Shape(); for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3, x = Math.cos(a) * r, y = Math.sin(a) * r; i ? s.lineTo(x, y) : s.moveTo(x, y); } s.closePath(); return s; }
+const ringShape = hexShape(1); ringShape.holes.push(hexShape(.72));
+const ext = (shape, depth) => new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: true, bevelThickness: .03, bevelSize: .03, bevelSegments: 2 });
+add(ext(ringShape, .16), lgPurple, 0, 0, -.08, logo);
+add(ext(hexShape(.5), .28), lgGreen, 0, 0, -.14, logo);
+const trace = (pts, mat) => add(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map(p => V(p[0], p[1], 0)), false, 'catmullrom', 0), 32, .06, 8, false), mat, 0, 0, 0, logo);
+const node = (x, y, mat) => { const t = add(new THREE.TorusGeometry(.15, .055, 10, 24), mat, x, y, 0, logo); };
+trace([[0, .87], [0, 1.6]], lgGreen); node(0, 1.78, lgGreen);
+trace([[-1, 0], [-1.55, 0]], lgGreen); node(-1.72, 0, lgPurple);
+trace([[1, 0], [1.55, 0]], lgGreen); node(1.72, 0, lgGreen);
+trace([[.5, .87], [.8, 1.25], [1.2, 1.25]], lgGreen); trace([[-.5, .87], [-.8, 1.25], [-1.2, 1.25]], lgPurple);
+trace([[0, -.87], [0, -1.5]], lgPurple); trace([[-.5, -.87], [-.8, -1.3]], lgPurple); node(-.9, -1.46, lgPurple); trace([[.5, -.87], [.8, -1.3]], lgGreen); node(.9, -1.46, lgGreen);
+logo.position.set(0, 21.5, 0); logo.scale.setScalar(2.2);
+
+
+
+// ---------- IDF: white wall-mount rack near the users (faces into the room), fiber back to the MDF ----------
+const idf = new THREE.Group(); idf.position.set(IDF_X, IDF_Y, IDF_Z); idf.rotation.y = Math.PI / 2; floor.add(idf);
+const IDF_U = 9, idfH = IDF_U * U + .03, IFR = .205;             // 17.75"-deep frame fits 400 mm UniFi switches                      // gear fronts sit at local z = IFR
+for (const sx of [-1, 1]) box(.02, idfH, .45, rackWhite, sx * .27, idfH / 2 - .015, 0, idf);
+for (const y of [-.015, idfH - .015]) box(.56, .02, .45, rackWhite, 0, y, 0, idf);
+box(.56, idfH, .01, rackWhite, 0, idfH / 2 - .015, -.225, idf);
+for (const sx of [-1, 1]) box(.034, idfH - .03, .002, railM, sx * .25, idfH / 2 - .015, IFR + .0235, idf);
+const idfDevs = [], idfCords = [], iy = u => (u - 1) * U + .005;
+function idfDevice(kind, u, units, depth = .25) {
+  const g = new THREE.Group(); idf.add(g);
+  const mats = [sideM, sideM, sideM, sideM, new THREE.MeshStandardMaterial({ map: faceTex(units, faces[kind]), roughness: .45, metalness: .25 }), sideM];
+  add(new THREE.BoxGeometry(RW, units * U - .002, depth), mats, 0, iy(u) + units * U / 2, IFR - depth / 2 + .004, g);
+  const ears = G(units > 1 ? 'Ears2U' : 'Ears1U'); ears.position.set(0, iy(u) + units * U / 2, IFR + .004); g.add(ears);
+  const d = { u, g, y: iy(u) + units * U / 2 }; idfDevs.push(d); return d;
+}
+idfDevice('bbu', 1, 2, .28); idfDevice('pdu', 3, 1, .15);
+const ippB = idfDevice('patchB', 4, 1, .06), iswB = idfDevice('switch', 5, 1, .4);
+const ippA = idfDevice('patchA', 6, 1, .06), iswA = idfDevice('switch', 7, 1, .4);
+idfDevice('mgr', 8, 1, .06); const ifib = idfDevice('fiber', 9, 1, .18);   // fiber on top, uplinked to the MDF
+const idfOrder = [...idfDevs].sort((a, b) => b.u - a.u);
+[[iswA, ippA, 0], [iswB, ippB, 1]].forEach(([sw, pp, k]) => {
+  for (let i = 0; i < 24; i++) {
+    const x = SWX(i), zf = IFR + .014, geo = new THREE.TubeGeometry(new THREE.CubicBezierCurve3(V(x, sw.y, zf), V(x - .013, sw.y - .002, zf + .034), V(x - .013, pp.y + .004, zf + .03), V(x, pp.y, zf)), 20, .0022, 6, false);
+    geo.setDrawRange(0, 0); const a = .62 + k * .08 + i * .002;
+    idfCords.push({ m: add(geo, std(PAIR_COLS[k][i], { roughness: .45 }), 0, 0, 0, idf), count: geo.index.count, a, b: a + .05 });
+  }
+});
+{ const geo = new THREE.TubeGeometry(new THREE.CatmullRomCurve3([V(-.02, ifib.y, IFR + .012), V(-.02, ifib.y, IFR + .05), V(.205, iswA.y + .02, IFR + .05), V(.205, iswA.y, IFR + .012)]), 20, .0026, 6, false);
+  geo.setDrawRange(0, 0); idfCords.push({ m: add(geo, std(0x19c3d4, { roughness: .4 }), 0, 0, 0, idf), count: geo.index.count, a: .78, b: .85 }); }
+const idfLed = new THREE.MeshBasicMaterial({ color: 0x9fd4ff, transparent: true, opacity: 0 });
+for (const sw of [iswA, iswB]) for (let i = 0; i < 24; i++) add(ledGeo, idfLed, SWX(i) + .005, sw.y + .014, IFR + .0052, sw.g);
+const idfTag = tag('IDF', '#46c265', IDF_X + .3, IDF_Y + .56, IDF_Z); tags.splice(tags.indexOf(idfTag), 1); idfTag.scale.set(.3, .06, 1);
+const idfFiber = cables.find(c => c.type === 'fiber');
+function updateIDF(p, iq, time) {
+  const built = iq >= 0 ? iq : p > IDF_A ? 1 : 0;
+  idf.visible = iq >= 0 || p > IDF_A;
+  idfOrder.forEach((d, i) => { const t = sm(seg(built, .3 + i * .035, .36 + i * .035)); d.g.position.z = (1 - t) * .6; d.g.visible = t > 0; });
+  for (const c of idfCords) c.m.geometry.setDrawRange(0, Math.floor(c.count * seg(built, c.a, c.b) / 30) * 30);
+  idfLed.opacity = seg(built, .86, .92) * (Math.sin(time * 9) > -.3 ? 1 : .2);
+  const tg = iq >= 0 ? Math.min(seg(iq, .3, .38), 1 - seg(iq, .88, .96)) : 0; idfTag.material.opacity = tg; idfTag.visible = tg > .01;
+  if (iq > .75) {                                        // light up the fiber uplink back to the MDF
+    idfFiber.mesh.geometry.setDrawRange(0, idfFiber.count); idfFiber.pulse.visible = true;
+    idfFiber.pulse.position.copy(idfFiber.path.getPointAt(1 - (time * .22) % 1));
+  }
+  const ip = document.getElementById('idfPanel'), o = iq >= 0 ? Math.min(clamp01(iq / .06), clamp01((1 - iq) / .06)) : 0; ip.style.opacity = o; ip.style.pointerEvents = o > .5 ? 'auto' : 'none';
+}
+
+// MDF room: grounding, firestopping, coax surge, cooling, dedicated circuit
+const copper = std(0xc27a3a, { metalness: .8, roughness: .35 }), gw = std(0x1f9c3a, { roughness: .5 });
+box(.34, .045, .02, copper, 10.0, .95, -7.88, mdf); for (let i = 0; i < 6; i++) add(new THREE.CylinderGeometry(.006, .006, .03, 8), steel, 9.87 + i * .052, .95, -7.86, mdf).rotation.x = Math.PI / 2;
+add(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([V(9.9, .93, -7.86), V(9.7, .5, -7.6), V(9.45, .1, -6.5), V(9.2, .06, -6.3)]), 24, .006, 6), gw, 0, 0, 0, mdf);
+const fs = add(new THREE.TorusGeometry(.055, .018, 10, 24), std(0xc0392b, { roughness: .9 }), 6.56, 2.55, -6.2, mdf); fs.rotation.y = Math.PI / 2;
+box(.06, .1, .04, std(0x9aa0a8, { metalness: .6 }), 10.85, 1.62, -7.86, mdf);
+box(.85, .28, .2, white, 7.75, 2.38, -7.82, mdf); box(.8, .03, .02, std(0xcfd3d9), 7.75, 2.27, -7.71, mdf);
+box(.09, .12, .02, std(0xe67e22), 9.7, .45, -7.9, mdf);
+const mdfTags = [tag('Ground bar · rack bonded', '#46c265', 10.0, 1.12, -7.75), tag('Firestopping', '#e0453a', 6.7, 2.78, -6.2), tag('Coax surge protector', '#f2c230', 10.85, 1.8, -7.75),
+  tag('Dedicated cooling', '#5fb4ff', 7.75, 2.66, -7.7), tag('Dedicated 20A circuit', '#e67e22', 9.7, .66, -7.75)];
+mdfTags.forEach(t => { tags.splice(tags.indexOf(t), 1); t.scale.set(.62, .124, 1); });
+// endpoints at the desks and walls, called out during the workspace scenes
+const deskTags = [tag('Workstation data drop', '#5fb4ff', -7.0, 1.6, -7.0), tag('Wall plate · 2 jacks', '#5fb4ff', -6.48, .85, -7.6), tag('Conference room TV', '#b58cf0', 3, 2.12, -7.6),
+  tag('Digital signage', '#b58cf0', -11.6, 2.22, -1), tag('Cubicle drops', '#5fb4ff', -7, 1.6, 2.5)];
+deskTags.forEach(t => { tags.splice(tags.indexOf(t), 1); t.scale.set(.62, .124, 1); });
+// optional sound: soft ambient chord + gentle noise, louder while the speakers are shown
+let actx = null, master = null, sndOn = false;
+const sndBtn = document.getElementById('snd');
+sndBtn.addEventListener('click', () => {
+  sndOn = !sndOn;
+  if (!actx) {
+    actx = new AudioContext(); master = actx.createGain(); master.gain.value = 0; master.connect(actx.destination);
+    const buf = actx.createBuffer(1, actx.sampleRate * 2, actx.sampleRate), d = buf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    const noise = actx.createBufferSource(); noise.buffer = buf; noise.loop = true;
+    const lp = actx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 650; const ng = actx.createGain(); ng.gain.value = .22;
+    noise.connect(lp).connect(ng).connect(master); noise.start();
+    [130.81, 164.81, 196, 246.94].forEach((f, i) => { const o = actx.createOscillator(), g = actx.createGain(), l = actx.createOscillator(), lg = actx.createGain();
+      o.type = 'sine'; o.frequency.value = f; g.gain.value = .05; l.frequency.value = .12 + i * .05; lg.gain.value = .035; l.connect(lg).connect(g.gain); o.connect(g).connect(master); o.start(); l.start(); });
+  } else if (sndOn) actx.resume(); else actx.suspend();
+  sndBtn.setAttribute('aria-pressed', String(sndOn)); sndBtn.textContent = sndOn ? '♪ Sound on' : '♪ Sound';
+});
+
+// ---------- access control + a visitor whose phone joins the Wi-Fi and roams AP to AP ----------
+// suite entry on the lobby side (x > 6.5): wall with a glass pocket door, a UniFi Access reader, and the elevator
+box(.12, CEIL, 3.0, wallM, 6.5, CEIL / 2, 2.5, floor); box(.12, CEIL, 3.0, wallM, 6.5, CEIL / 2, 6.5, floor);
+box(.12, CEIL - 2.2, 1.0, wallM, 6.5, 2.2 + (CEIL - 2.2) / 2, 4.5, floor);
+for (const z of [4.0, 5.0]) box(.14, 2.2, .05, frameM, 6.5, 1.1, z, floor);
+const doorLeaf = new THREE.Group(); doorLeaf.position.set(6.5, 0, 4.5); floor.add(doorLeaf);
+box(.03, 2.16, .96, std(0xcfe3ef, { transparent: true, opacity: .35, roughness: .05, metalness: .4 }), 0, 1.08, 0, doorLeaf);
+box(.05, .04, .5, frameM, .03, 1.05, -.2, doorLeaf);
+const reader = new THREE.Group(); reader.position.set(6.575, 1.25, 5.35); floor.add(reader);
+box(.016, .15, .065, white, 0, 0, 0, reader);
+const ringM = new THREE.MeshBasicMaterial({ color: 0x9fd4ff });
+const ring = add(new THREE.TorusGeometry(.019, .0035, 8, 32), ringM, .009, -.02, 0, reader); ring.rotation.y = Math.PI / 2;
+add(new THREE.CircleGeometry(.006, 16), std(0x0b0b0e, { roughness: .1 }), .0085, .05, 0, reader).rotation.y = Math.PI / 2;   // face-ID camera
+const accessTag = tag('Access granted', '#46c265', 6.62, 1.62, 5.35); tags.splice(tags.indexOf(accessTag), 1); accessTag.scale.set(.62, .124, 1);
+box(.035, .13, .03, steel, 6.5, 1.05, 4.97, floor);                                                   // electric strike
+box(.012, .09, .07, white, 6.43, 1.15, 5.3, floor); add(new THREE.CylinderGeometry(.02, .02, .01, 16), std(0x1f9c3a), 6.42, 1.15, 5.3, floor).rotation.z = Math.PI / 2;   // exit button
+box(.05, .04, .13, white, 6.43, 2.25, 4.5, floor);                                                    // motion exit sensor
+const doorTags = [tag('Electric strike', '#46c265', 6.75, .85, 4.95), tag('Exit button', '#46c265', 6.2, 1.38, 5.3), tag('Motion exit sensor', '#46c265', 6.3, 2.45, 4.5)];
+doorTags.forEach(t => { tags.splice(tags.indexOf(t), 1); t.scale.set(.5, .1, 1); });
+box(.05, 2.3, 1.5, std(0xb9bec6, { metalness: .85, roughness: .25 }), 11.93, 1.15, 6.4, floor);                      // elevator doors
+box(.06, .02, 1.5, std(0x2a2b30), 11.9, 1.15, 6.4, floor); box(.02, .12, .07, white, 11.94, 1.2, 5.45, floor);
+
+// the visitor: a standing figure holding a phone (faces +z locally)
+const visitor = new THREE.Group(); floor.add(visitor);
+const vSkin = std(0xe0b89a, { roughness: .7 }), vShirt = std(0x2a9d8f, { roughness: .8 }), vPants = std(0x2c2f3a, { roughness: .8 });
+add(new THREE.CapsuleGeometry(.17, .42, 4, 12), vShirt, 0, 1.2, 0, visitor);
+add(new THREE.SphereGeometry(.11, 16, 12), vSkin, 0, 1.72, 0, visitor);
+add(new THREE.SphereGeometry(.118, 16, 10, 0, Math.PI * 2, 0, 1.4), std(0x2b1d14, { roughness: .9 }), 0, 1.75, -.01, visitor);
+const hips = [-1, 1].map(sx => { const h = new THREE.Group(); h.position.set(sx * .09, .92, 0); visitor.add(h);
+  add(new THREE.CapsuleGeometry(.07, .62, 4, 10), vPants, 0, -.42, 0, h); box(.1, .06, .2, black, 0, -.83, .04, h); return h; });
+const leftArm = new THREE.Group(); leftArm.position.set(-.23, 1.48, 0); visitor.add(leftArm);
+add(new THREE.CapsuleGeometry(.05, .5, 4, 8), vShirt, 0, -.3, 0, leftArm);
+const armGeo = new THREE.CapsuleGeometry(.05, .5, 4, 8), armLen0 = .6, rightArm = add(armGeo, vShirt, 0, 0, 0, visitor);
+const phoneCanvas = document.createElement('canvas'); phoneCanvas.width = 128; phoneCanvas.height = 256;
+const phoneTex = new THREE.CanvasTexture(phoneCanvas); phoneTex.colorSpace = THREE.SRGBColorSpace;
+const phone = new THREE.Group(); visitor.add(phone);
+box(.075, .15, .009, black, 0, 0, 0, phone);
+add(new THREE.PlaneGeometry(.068, .14), new THREE.MeshBasicMaterial({ map: phoneTex, toneMapped: false }), 0, 0, .0048, phone);
+let phoneState = '';
+function drawPhone(state, ap) {
+  const key = state + ap; if (key === phoneState) return; phoneState = key;
+  const g = phoneCanvas.getContext('2d'), W = 128, H = 256;
+  g.fillStyle = state === 'granted' ? '#0f3d24' : '#0d1220'; g.fillRect(0, 0, W, H);
+  g.textAlign = 'center'; g.fillStyle = '#fff';
+  if (state === 'lock' || state === 'tap') { g.font = '700 30px Montserrat'; g.fillText('9:41', W / 2, 60); g.font = '600 13px Montserrat'; g.fillStyle = '#9fd4ff'; g.fillText(state === 'tap' ? 'Reading…' : 'Tap to unlock', W / 2, 200); g.strokeStyle = '#9fd4ff'; g.lineWidth = 4; g.beginPath(); g.arc(W / 2, 130, 26, 0, 7); g.stroke(); }
+  else if (state === 'granted') { g.strokeStyle = '#46c265'; g.lineWidth = 10; g.beginPath(); g.moveTo(34, 128); g.lineTo(56, 152); g.lineTo(96, 100); g.stroke(); g.font = '700 15px Montserrat'; g.fillStyle = '#fff'; g.fillText('Door unlocked', W / 2, 200); }
+  else { for (let k = 0; k < 3; k++) { g.strokeStyle = '#5fb4ff'; g.lineWidth = 7; g.beginPath(); g.arc(W / 2, 140, 18 + k * 17, -2.4, -.74); g.stroke(); } g.fillStyle = '#5fb4ff'; g.beginPath(); g.arc(W / 2, 140, 6, 0, 7); g.fill();
+    g.fillStyle = '#fff'; g.font = '700 14px Montserrat'; g.fillText('CorTek-Staff', W / 2, 185); g.font = '600 12px Montserrat'; g.fillStyle = '#46c265'; g.fillText(state === 'roam' ? `Roaming · AP ${ap}` : 'Connected', W / 2, 206); }
+  g.textAlign = 'left'; phoneTex.needsUpdate = true;
+}
+drawPhone('lock', 0);
+const beamGeo = new THREE.CylinderGeometry(.01, .01, 1, 8, 1, true); beamGeo.rotateX(Math.PI / 2);
+const beam = add(beamGeo, new THREE.MeshBasicMaterial({ color: 0x5fb4ff, transparent: true, opacity: .8, depthTest: false, blending: THREE.AdditiveBlending }), 0, 0, 0, scene); beam.renderOrder = 11;
+const labelCache = {}, visTag = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true, depthTest: false })); visTag.scale.set(1.1, .22, 1); visTag.renderOrder = 12; scene.add(visTag);
+function visLabel(text, color) { const k = text; if (!labelCache[k]) labelCache[k] = label(text, color).material.map; visTag.material.map = labelCache[k]; visTag.material.needsUpdate = true; }
+// walk paths (floor x/z) and where the phone rests when not tapping
+const entryPath = [[10.6, 6.6], [7.05, 5.35]], throughPath = [[7.05, 5.35], [6.9, 4.5], [5.6, 4.5], [3.5, 4.1]];
+const roamPath = [[3.5, 4.1], [-1.0, 5.2], [-3.6, 4.6], [-8.0, -.2], [-4.2, -3.4], [-.8, -2.6]];
+function along(path, t) {
+  const segs = path.slice(1).map((pt, i) => Math.hypot(pt[0] - path[i][0], pt[1] - path[i][1])), total = segs.reduce((a, b) => a + b, 0);
+  let d = clamp01(t) * total, i = 0; while (i < segs.length - 1 && d > segs[i]) d -= segs[i++];
+  const a = path[i], b = path[i + 1], f = segs[i] ? d / segs[i] : 0;
+  return { x: a[0] + (b[0] - a[0]) * f, z: a[1] + (b[1] - a[1]) * f, dir: Math.atan2(b[0] - a[0], b[1] - a[1]), dist: clamp01(t) * total };
+}
+const phoneRest = V(.14, 1.2, .3), tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3(), shoulderR = V(.23, 1.48, 0);
+function updateVisitor(p, q, access, time) {
+  let pos, moving = 0, tap = 0, state = 'lock', showBeam = false, beamStrength = 0;
+  if (access || p <= ACC_A + 1e-6) {
+    if (q < .35) { pos = along(entryPath, q / .35); moving = 1; }
+    else if (q < .58) { pos = along(entryPath, 1); pos.dir = -Math.PI / 2; tap = sm(seg(q, .36, .44)) * (1 - sm(seg(q, .5, .58))); state = q < .44 ? 'lock' : q < .47 ? 'tap' : 'granted'; }
+    else { pos = along(throughPath, seg(q, .6, 1)); moving = q < 1 ? 1 : 0; state = q > .8 ? 'wifi' : 'granted'; showBeam = q > .8; }
+  } else if (p < .355) { pos = along(throughPath, 1); state = 'wifi'; showBeam = p > .3; }
+  else { const u = seg(p, .355, .47); pos = along(roamPath, u); moving = u > 0 && u < 1 ? 1 : 0; state = 'roam'; showBeam = true; }
+  visitor.position.set(pos.x, 0, pos.z); visitor.rotation.y = pos.dir;
+  const phase = pos.dist * 5.5;
+  hips.forEach((h, k) => { h.rotation.x = moving * Math.sin(phase + k * Math.PI) * .45; });
+  leftArm.rotation.x = moving * Math.sin(phase) * .35;
+  // phone: rests in front of the chest, or reaches out to the reader
+  visitor.updateMatrixWorld(true);
+  const readerLocal = visitor.worldToLocal(reader.getWorldPosition(tmpA).add(V(.05, 0, 0)));
+  phone.position.lerpVectors(phoneRest, readerLocal, tap); phone.rotation.set(-1.0 + tap * 1.0, tap * -1.4, 0);
+  rightArm.position.copy(shoulderR).add(phone.position).multiplyScalar(.5);
+  tmpB.copy(phone.position).sub(shoulderR); rightArm.quaternion.setFromUnitVectors(V(0, 1, 0), tmpB.clone().normalize()); rightArm.scale.set(1, tmpB.length() / armLen0, 1);
+  // reader ring + door
+  const granted = access ? q >= .47 : true;
+  ringM.color.setHex(!access ? 0x46c265 : q < .44 ? 0x9fd4ff : q < .47 ? (Math.sin(time * 30) > 0 ? 0x5fb4ff : 0xffffff) : 0x46c265);
+  doorLeaf.position.z = 4.5 + .98 * (access ? sm(seg(q, .48, .6)) * (1 - sm(seg(q, .95, 1))) : 0);
+  const at = access ? sm(seg(q, .47, .5)) * (1 - sm(seg(q, .62, .66))) : 0; accessTag.material.opacity = at; accessTag.visible = at > .01;
+  // nearest AP + connection beam
+  let best = 0, bd = 1e9; const ph = phone.getWorldPosition(tmpA);
+  aps.forEach((a, k) => { const d = Math.hypot(a.position.x - ph.x, a.position.z - ph.z); if (d < bd) { bd = d; best = k; } });
+  drawPhone(state, best + 1);
+  const apW = aps[best].getWorldPosition(tmpB).add(V(0, -.04, 0));
+  beam.visible = showBeam && granted;
+  if (beam.visible) { beam.position.copy(ph).add(apW).multiplyScalar(.5); beam.lookAt(apW); beam.scale.set(1, 1, ph.distanceTo(apW)); beam.material.opacity = .55 + .3 * Math.sin(time * 6); }
+  const tagText = state === 'roam' ? `Roaming → AP ${best + 1}` : state === 'wifi' ? 'Auto-joined Wi-Fi' : '';
+  visTag.visible = !!tagText && (access ? q > .8 : p > .3 && p < .48);
+  if (visTag.visible) { visLabel(tagText, '#5fb4ff'); visTag.position.set(pos.x, 2.15, pos.z); }
+}
+
+// ---------- scroll → story ----------
+const GATE_A = .08, GATE_L = .12, ACC_A = .1, ACC_L = .135, COM_A = .15, COM_L = .15, IDF_A = .895, IDF_L = .1, DASH_A = .935, DASH_L = .1;
+// inserted scenes: the story pauses at time `at` while that scene plays over its own stretch of scroll
+const INSERTS = [[GATE_A, GATE_L], [ACC_A, ACC_L], [COM_A, COM_L], [IDF_A, IDF_L], [DASH_A, DASH_L]], EXTRA = INSERTS.reduce((a, [, l]) => a + l, 0);
+function storyAt(r) {
+  let rs = r * (1 + EXTRA), shift = 0;
+  for (let i = 0; i < INSERTS.length; i++) {
+    const [at, len] = INSERTS[i], start = at + shift;
+    if (rs < start) break;
+    if (rs < start + len) return { p: at, ins: i, q: (rs - start) / len, at };
+    shift += len;
+  }
+  return { p: rs - shift, ins: -1, q: 0, at: -1 };
+}
+const keys = [
+  [0.00, [36, 14, 44], [0, 3, 0]],
+  [0.07, [18, 4.5, 24], [-2, 1, -2]],
+  [0.12, [4, 2.3, 10], [-5, 1, -4]],
+  [0.19, [-4.6, 1.5, -3.2], [-7, .7, -7.9]],
+  [0.28, [-6.2, 1.7, -5.0], [-6.4, 1.5, -8]],
+  [0.37, [-3.5, 7.2, 5.5], [-3, 2.6, -3.5]],
+  [0.45, [4.2, 6.2, 1.5], [7, 2.8, -4.5]],
+  [0.53, [9.25, 3.3, -2.1], [9.25, 1.7, -6.1]],
+  [0.60, [9.25, 1.25, -3.2], [9.25, .8, -6.0]],
+  [0.70, [8.5, 1.35, -3.5], [9.25, .85, -6.0]],
+  [0.80, [9.02, 1.05, -4.85], [9.25, .88, -5.8]],
+  [0.875, [9.9, 1.1, -4.2], [9.25, .85, -6.0]],
+  [0.893, [9.55, 1.25, -4.5], [9.25, 1.08, -6.0]],
+  [0.908, [9.27, 1.33, -5.3], [9.25, 1.32, -5.86]],    // the camera monitor
+  [0.93, [9.4, 1.35, -5.05], [9.25, 1.31, -5.86]],
+  [0.96, [18, 7, 16], [0, 1, -3]],
+  [1.00, [38, 17, 46], [0, 6, 0]],
+];
+function poseAt(p, ks = keys) {
+  let i = 0; while (i < ks.length - 2 && p > ks[i + 1][0]) i++;
+  const [p0, a0, l0] = ks[i], [p1, a1, l1] = ks[i + 1], t = sm(clamp01((p - p0) / (p1 - p0)));
+  return [a0.map((v, k) => v + (a1[k] - v) * t), l0.map((v, k) => v + (l1[k] - v) * t)];
+}
+function cameraAt(p, ks) { const [a, l] = poseAt(p, ks); camera.position.set(...a); camera.lookAt(...l); }
+// the access-control scene is its own stretch of scroll inserted at story time ACC_A (the story waits while it plays)
+const [accPos, accLook] = poseAt(ACC_A);
+const accessKeys = [[0, accPos, accLook], [.12, [13.6, 1.9, 8.8], [9.0, 1.1, 5.5]], [.4, [7.35, 1.75, 8.6], [6.75, 1.25, 5.3]],
+  [.6, [7.7, 1.7, 8.0], [6.3, 1.1, 4.6]], [.86, [7.9, 1.8, 6.8], [3.8, 1.1, 3.9]], [1, accPos, accLook]];
+const [comPos, comLook] = poseAt(COM_A);
+const commKeys = [[0, comPos, comLook], [.12, [-7.0, 1.85, -4.5], [-7.0, .95, -7.6]], [.3, [-8.1, 1.6, -5.7], [-8.75, .95, -7.4]],
+  [.52, [-6.2, 1.55, -6.0], [-7.0, 1.1, -7.55]], [.72, [-4.9, 1.45, -5.5], [-5.2, 1.15, -6.9]], [.9, [-3.7, 1.45, -5.65], [-3.45, .85, -7.4]], [1, comPos, comLook]];
+const commTags = [[tag('Desk phone + corded headset', '#5fb4ff', -8.8, 1.55, -7.1), .12, .42], [tag('Softphone app + USB headset', '#5fb4ff', -7.0, 1.5, -7.1), .4, .6],
+  [tag('Team chat in the app', '#46c265', -7.0, 1.42, -7.1), .58, .74], [tag('Bluetooth headset · walk & talk', '#5fb4ff', -5.2, 1.6, -6.7), .66, .86], [tag('Voicemail in the app', '#e0453a', -3.4, 1.3, -7.1), .8, .98]];
+commTags.forEach(([t]) => { tags.splice(tags.indexOf(t), 1); t.scale.set(.55, .11, 1); });
+function updateComm(cq, p, time) {
+  for (const [t, a, b] of commTags) { const o = cq >= 0 ? Math.min(sm(seg(cq, a, a + .04)), 1 - sm(seg(cq, b - .04, b))) : 0; t.material.opacity = o; t.visible = o > .01; }
+  const ringing = cq >= .12 && cq < .3, vm = cq >= .78 || cq < 0;
+  phoneRings.forEach((r, i) => { const main = i === 1; r.scr.material.color.setHex(main && ringing && Math.sin(time * 18) > 0 ? 0x9fd4ff : 0x3a7bd5);
+    r.ph.rotation.z = main && ringing ? Math.sin(time * 60) * .03 : 0; r.led.visible = i === 3 && vm ? Math.sin(time * 5) > 0 : false; });
+  drawSoft(cq < .4 ? 'idle' : cq < .48 ? 'call' : cq < .58 ? 'talk' : cq < .78 ? 'chat' : 'vm');
+  const cp = document.getElementById('commPanel'), o = cq >= 0 ? Math.min(clamp01(cq / .05), clamp01((1 - cq) / .05)) : 0; cp.style.opacity = o; cp.style.pointerEvents = o > .5 ? 'auto' : 'none';
+}
+// ---------- gate scene: a car pulls up, the driver keys a code on the video intercom, the gate slides; a PTZ zooms in ----------
+const GY = -4 * 3.4 - .3;                                                     // exterior ground
+const gateG = new THREE.Group(); exterior.add(gateG);
+const fenceM = std(0x2a2d33, { metalness: .6, roughness: .4 });
+for (let x = -12; x <= 12; x += 1.5) if (x < .4 || x > 6.6) box(.06, 1.9, .06, fenceM, x, GY + .95, 26.25, gateG);
+box(12.4, .05, .04, fenceM, -5.8, GY + 1.85, 26.25, gateG); box(5.4, .05, .04, fenceM, 9.3, GY + 1.85, 26.25, gateG);
+box(12.4, .05, .04, fenceM, -5.8, GY + .15, 26.25, gateG); box(5.4, .05, .04, fenceM, 9.3, GY + .15, 26.25, gateG);
+const slideGate = new THREE.Group(); slideGate.position.set(3.5, GY, 26); gateG.add(slideGate);
+box(6, .06, .06, fenceM, 0, 1.8, 0, slideGate); box(6, .06, .06, fenceM, 0, .2, 0, slideGate);
+for (let x = -2.9; x <= 2.9; x += .3) box(.03, 1.6, .03, fenceM, x, 1.0, 0, slideGate);
+box(.5, .5, .4, std(0x3a3d44), 7.2, GY + .25, 26.5, gateG);                   // gate operator
+const ped = new THREE.Group(); ped.position.set(1.95, GY, 28.3); ped.rotation.y = Math.PI / 2; gateG.add(ped);   // intercom pedestal faces the driver
+add(new THREE.CylinderGeometry(.05, .06, 1.25, 12), fenceM, 0, .62, 0, ped);
+box(.2, .34, .08, std(0xb9bec6, { metalness: .8, roughness: .3 }), 0, 1.35, 0, ped);
+const icCanvas = document.createElement('canvas'); icCanvas.width = 128; icCanvas.height = 160; const icTex = new THREE.CanvasTexture(icCanvas); icTex.colorSpace = THREE.SRGBColorSpace;
+add(new THREE.PlaneGeometry(.15, .19), new THREE.MeshBasicMaterial({ map: icTex, toneMapped: false }), 0, 1.32, .041, ped);
+add(new THREE.CircleGeometry(.018, 16), std(0x08080a, { roughness: .1 }), 0, 1.47, .041, ped);
+let icState = '';
+function drawIntercom(code, ok) {
+  const k = code + ok; if (k === icState) return; icState = k; const g = icCanvas.getContext('2d');
+  g.fillStyle = ok ? '#0f3d24' : '#0c1118'; g.fillRect(0, 0, 128, 160); g.textAlign = 'center';
+  g.fillStyle = ok ? '#46c265' : '#9fd4ff'; g.font = '700 16px Montserrat'; g.fillText(ok ? 'ACCESS' : 'ENTER CODE', 64, 34); if (ok) g.fillText('GRANTED', 64, 54);
+  g.fillStyle = '#fff'; g.font = '700 30px Montserrat'; g.fillText(ok ? '✓' : '• '.repeat(code).trim() || '_', 64, ok ? 104 : 96);
+  g.textAlign = 'left'; icTex.needsUpdate = true;
+}
+drawIntercom(0, false);
+const car = new THREE.Group(); gateG.add(car);
+car.add(G('Car'));                                                              // Blender-modeled sedan
+add(new THREE.SphereGeometry(.12, 12, 10), vSkin, -.4, 1.12, .25, car);         // the driver
+// PTZ on a pole by the building, and the view it streams (drawn as a picture-in-picture)
+add(new THREE.CylinderGeometry(.08, .1, 4.8), fenceM, -3, GY + 2.4, 22.5, gateG);
+box(.5, .06, .06, fenceM, -2.75, GY + 4.75, 22.5, gateG);
+const ptzHead = new THREE.Group(); ptzHead.position.set(-2.5, GY + 4.55, 22.5); gateG.add(ptzHead);
+add(new THREE.CylinderGeometry(.12, .12, .16, 20), white, 0, .08, 0, ptzHead);
+add(new THREE.SphereGeometry(.15, 20, 14), std(0x0d0d10, { roughness: .08, metalness: .3 }), 0, -.05, 0, ptzHead);
+const ptzLens = new THREE.Object3D(); ptzLens.position.set(0, -.05, .14); ptzHead.add(ptzLens);
+const ptzCam = new THREE.PerspectiveCamera(50, 16 / 9, .05, 200);
+const gateTags = [[tag('Gate video intercom', '#46c265', 1.95, GY + 1.95, 28.3, gateG), .22, .62], [tag('PTZ camera · pan, tilt & zoom', '#f07f2a', -2.5, GY + 5.2, 22.5, gateG), .42, .9], [tag('Vehicle gate operator', '#5fb4ff', 7.2, GY + 1.0, 26.5, gateG), .6, .86]];
+gateTags.forEach(([t]) => { tags.splice(tags.indexOf(t), 1); t.scale.set(1.3, .26, 1); });
+const gateKeys = [[0, ...poseAt(GATE_A)], [.15, [16, GY + 7, 44], [4, GY + 1, 27]], [.35, [5.6, GY + 2.1, 31.2], [2.4, GY + 1.3, 28.3]],
+  [.62, [9.5, GY + 3.2, 34], [2, GY + 1.5, 25]], [.85, [11, GY + 4, 37], [2, GY + 1, 22]], [1, ...poseAt(GATE_A)]];
+const ptzHud = document.getElementById('ptzHud'), tgt = new THREE.Vector3();
+function updateGate(gq, time) {
+  const on = gq >= 0;
+  const arrive = sm(seg(gq, .1, .32)), leave = sm(seg(gq, .66, .92));
+  car.position.set(3.5, GY, 40 - arrive * 11.6 - leave * 12);
+  const digits = Math.floor(seg(gq, .36, .48) * 5), ok = gq >= .49; drawIntercom(Math.min(digits, 4), ok);
+  slideGate.position.x = 3.5 - 6 * sm(seg(gq, .52, .66));
+  for (const [t, a, b] of gateTags) { const o = on ? Math.min(sm(seg(gq, a, a + .04)), 1 - sm(seg(gq, b - .04, b))) : 0; t.material.opacity = o; t.visible = o > .01; }
+  // PTZ: sweep the lot, then lock on and zoom into the driver's window
+  const lock = sm(seg(gq, .42, .56));
+  tgt.set(THREE.MathUtils.lerp(-6 + Math.sin(time * .4) * 6, car.position.x - .4, lock), GY + THREE.MathUtils.lerp(.8, 1.18, lock), THREE.MathUtils.lerp(30, car.position.z + .3, lock));
+  ptzHead.lookAt(tgt); ptzLens.updateMatrixWorld(); ptzCam.position.setFromMatrixPosition(ptzLens.matrixWorld); ptzCam.lookAt(tgt);
+  ptzCam.fov = THREE.MathUtils.lerp(55, 7, sm(seg(gq, .5, .7))); ptzCam.updateProjectionMatrix();
+  const ho = on ? Math.min(sm(seg(gq, .4, .46)), 1 - sm(seg(gq, .9, .96))) : 0; ptzHud.style.opacity = ho;
+  ptzHud.querySelector('span').textContent = `PTZ CAM 01 · ${Math.round(55 / ptzCam.fov)}x`;
+  const gp = document.getElementById('gatePanel'), o = on ? Math.min(clamp01(gq / .05), clamp01((1 - gq) / .05)) : 0; gp.style.opacity = o;
+  return ho;
+}
+// ---------- manager dashboard on the conference-room TV ----------
+const dashCanvas = document.createElement('canvas'); dashCanvas.width = 1024; dashCanvas.height = 578;
+const dashTex = new THREE.CanvasTexture(dashCanvas); dashTex.colorSpace = THREE.SRGBColorSpace;
+function drawDash(tab, t, typed) {
+  const g = dashCanvas.getContext('2d'), W = 1024, H = 578;
+  g.fillStyle = '#f4f6fa'; g.fillRect(0, 0, W, H); g.fillStyle = '#121016'; g.fillRect(0, 0, W, 54); g.fillStyle = '#1b1f2a'; g.fillRect(0, 54, 170, H);
+  g.fillStyle = '#46c265'; g.font = '700 20px Montserrat'; g.fillText('CorTek Command', 18, 35);
+  ['Access', 'Cameras', 'Phones', 'Network'].forEach((n, i) => { g.fillStyle = n === tab ? '#46c265' : '#aeb6c4'; g.font = '600 17px Montserrat'; g.fillText(n, 22, 100 + i * 44); if (n === tab) g.fillRect(0, 84 + i * 44, 4, 24); });
+  g.fillStyle = '#1b2230';
+  if (tab === 'Access') {
+    g.font = '700 22px Montserrat'; g.fillText('Door access · users', 196, 92);
+    [['Maria Gomez', 'Badge 0311', 'All doors'], ['Dev Patel', 'Phone', 'Main entry, MDF'], ['Front Desk', 'Code ••••', 'Main entry']].forEach((r, i) => { g.fillStyle = i % 2 ? '#fff' : '#eef2f8'; g.fillRect(196, 112 + i * 40, 420, 38); g.fillStyle = '#1b2230'; g.font = '600 15px Montserrat'; r.forEach((c, j) => g.fillText(c, 208 + j * 140, 136 + i * 40)); });
+    g.fillStyle = '#fff'; g.fillRect(640, 76, 360, 420); g.strokeStyle = '#d5dbe6'; g.strokeRect(640, 76, 360, 420);
+    g.fillStyle = '#1b2230'; g.font = '700 18px Montserrat'; g.fillText('Add user', 660, 108);
+    [['Name', 'Jordan Lee'], ['Badge / code', '0412'], ['Doors', 'Main entry, MDF'], ['Schedule', 'Mon–Fri 7a–6p']].forEach(([l, v], i) => {
+      g.fillStyle = '#6b7587'; g.font = '600 13px Montserrat'; g.fillText(l, 660, 144 + i * 70); g.strokeStyle = '#c9d1de'; g.strokeRect(660, 152 + i * 70, 320, 34);
+      g.fillStyle = '#1b2230'; g.font = '600 15px Montserrat'; g.fillText(v.slice(0, Math.max(0, Math.round(typed * 4 * v.length - i * v.length))), 670, 175 + i * 70); });
+    g.fillStyle = typed >= 1 ? '#46c265' : '#2f7fe0'; g.fillRect(660, 440, 320, 40); g.fillStyle = '#fff'; g.font = '700 16px Montserrat'; g.fillText(typed >= 1 ? '✓ User added' : 'Save user', 760, 466);
+  } else if (tab === 'Cameras') {
+    g.font = '700 22px Montserrat'; g.fillText('Cameras · 16 online', 196, 92); g.drawImage(camCanvas, 196, 108, 800, 450);
+  } else if (tab === 'Phones') {
+    g.font = '700 22px Montserrat'; g.fillText('Phone system', 196, 92);
+    [['Extensions online', '24 / 24'], ['Calls today', '132'], ['Voicemails', '3 new']].forEach(([l, v], i) => { g.fillStyle = '#fff'; g.fillRect(196 + i * 268, 108, 250, 90); g.fillStyle = '#6b7587'; g.font = '600 14px Montserrat'; g.fillText(l, 212 + i * 268, 136); g.fillStyle = '#1b2230'; g.font = '700 30px Montserrat'; g.fillText(v, 212 + i * 268, 180 + 0); });
+    g.font = '700 16px Montserrat'; g.fillText('Recent calls', 196, 232);
+    [['10:42 AM', 'Front Desk → Ext 104', 'Answered', '3:12'], ['10:31 AM', '(407) 555-0142 → Main', 'Answered', '1:05'], ['10:18 AM', 'Ext 112 → (321) 555-0199', 'Outbound', '6:40'], ['10:02 AM', '(689) 555-0117 → Main', 'Voicemail', '0:42'], ['9:55 AM', 'Ext 101 → Ext 108', 'Answered', '0:58']].forEach((r, i) => {
+      g.fillStyle = i % 2 ? '#fff' : '#eef2f8'; g.fillRect(196, 248 + i * 44, 800, 42); g.fillStyle = r[2] === 'Voicemail' ? '#e0453a' : '#1b2230'; g.font = '600 15px Montserrat';
+      r.forEach((c, j) => g.fillText(c, 210 + [0, 120, 470, 640][j], 275 + i * 44)); });
+  }
+  dashTex.needsUpdate = true;
+}
+const dashKeys = [[0, ...poseAt(DASH_A)], [.22, [2.55, 1.6, -5.05], [2.3, 1.45, -7.9]], [.85, [2.45, 1.52, -5.35], [2.3, 1.45, -7.9]], [1, ...poseAt(DASH_A)]];
+let lastDash = -1;
+function updateDash(dq, time) {
+  const on = dq >= 0; tvScreen.material.map = on ? dashTex : logoImg; cablesG.visible = !on;
+  if (on && time - lastDash > .2) { lastDash = time; const tab = dq < .42 ? 'Access' : dq < .66 ? 'Cameras' : 'Phones'; if (tab === 'Cameras') drawCams(time); drawDash(tab, time, seg(dq, .12, .36)); }
+  const dp = document.getElementById('dashPanel'), o = on ? Math.min(clamp01(dq / .05), clamp01((1 - dq) / .05)) : 0; dp.style.opacity = o;
+}
+const [idfPos, idfLook] = poseAt(IDF_A);
+const idfKeys = [[0, idfPos, idfLook], [.18, [.5, 5.5, 3.5], [-8, 1, 6]], [.35, [-8.4, 2.5, 7.3], [-11.6, 1.3, 6.9]], [.55, [-10.55, 1.35, 7.05], [-11.7, 1.2, 6.9]],
+  [.82, [-10.4, 1.45, 6.45], [-11.7, 1.25, 6.9]], [1, idfPos, idfLook]];
+const cableDraw = p => p < .2 ? 0 : p < .3 ? .35 * seg(p, .2, .3) : p < .34 ? .35 : p < .46 ? .35 + .45 * seg(p, .34, .46) : .8 + .2 * seg(p, .46, .55);
+const panels = [...document.querySelectorAll('.panel')].filter(el => el.dataset.a !== '-1'), steps = [...document.querySelectorAll('.steps span')];
+let target = 0, pS = 0;
+const readScroll = () => { target = clamp01(scrollY / (document.documentElement.scrollHeight - innerHeight)); };
+addEventListener('scroll', readScroll, { passive: true }); readScroll(); pS = target;
+
+const clock = new THREE.Clock();
+let lastCam = -1;
+renderer.setAnimationLoop(() => {
+  const dt = Math.min(clock.getDelta(), .05), time = clock.elapsedTime;
+  pS += (target - pS) * Math.min(1, dt * 6);          // smooth, like scrubbing
+  const sa = storyAt(pS), p = sa.p, access = sa.at === ACC_A, q = access ? sa.q : 0, cq = sa.at === COM_A ? sa.q : -1, iq = sa.at === IDF_A ? sa.q : -1, gq = sa.at === GATE_A ? sa.q : -1, dq = sa.at === DASH_A ? sa.q : -1;
+  if (access) cameraAt(q, accessKeys); else if (cq >= 0) cameraAt(cq, commKeys); else if (iq >= 0) cameraAt(iq, idfKeys); else if (gq >= 0) cameraAt(gq, gateKeys); else if (dq >= 0) cameraAt(dq, dashKeys); else cameraAt(p);
+  const ptzOn = updateGate(gq, time); updateDash(dq, time);
+  updateVisitor(p, q, access, time);
+
+  const inside = p > .1 && p < .93;
+  exterior.visible = !inside || p < .13 || p > .935;
+  facadeM.opacity = .55 * (1 - seg(p, .06, .11)) + .3 * seg(p, .92, .97);
+  logo.visible = exterior.visible;
+  logo.rotation.y = Math.sin(time * .5) * .35 + (1 - seg(p, .9, 1)) * 0;
+  logo.position.y = 21.5 + Math.sin(time) * .15;
+  lgGreen.emissiveIntensity = .3 + Math.sin(time * 2) * .15;
+
+  // plates slide onto the wall, then jacks click in
+  const tp = sm(seg(p, .17, .21)), tj = sm(seg(p, .2, .235));
+  plates.forEach(({ plate, jacks }) => { plate.position.z = (1 - tp) * .25; plate.visible = tp > 0; jacks.forEach(j => { j.position.z = .004 + (1 - tj) * .06; j.visible = tj > 0; }); });
+  wallM.opacity = 1 - .72 * sm(seg(p, .22, .27));
+  ceilM.opacity = 1 - .9 * sm(seg(p, .3, .35));
+  ceiling.visible = ceilM.opacity > .02;
+  plenum.visible = p > .29;
+  hooks.forEach((h, i) => { const t = sm(seg(p, .31 + i * .002, .345 + i * .002)); h.scale.setScalar(Math.max(t, .001)); });
+  ceilDevices.forEach((d, i) => { const t = sm(seg(p, .34 + i * .006, .37 + i * .006)); d.position.y = CEIL - .005 - (1 - t) * .6; d.visible = t > 0; });
+  // spotlight what each ceiling device does while the ceiling is open
+  const show = sm(seg(p, .36, .4)) * (1 - sm(seg(p, .47, .51)));
+  for (const f of fx) {
+    f.m.visible = show > .01; if (!f.m.visible) continue;
+    if (f.kind === 'note') { const t = (time * .32 + f.ph) % 1; f.m.position.set(f.x + Math.sin((t + f.ph) * 7) * .1, CEIL - .12 - t * .95, f.z); f.m.material.opacity = show * Math.sin(t * Math.PI); continue; }
+    if (f.kind === 'ring') { const t = (time * f.speed + f.ph) % 1; f.m.scale.setScalar(.14 + t * f.maxR); f.m.material.opacity = show * (1 - t) * .9; }
+    else f.m.material.opacity = show * (.12 + .05 * Math.sin(time * 2.2));
+  }
+  for (const s of tags) { s.material.opacity = show; s.visible = show > .01; }
+  for (const f of extFx) f.m.material.opacity = .1 + .05 * Math.sin(time * 1.8);
+  // braided sleeve grows down over the drop as the trunk lands in the rack
+  const dt2 = cq >= 0 ? 0 : sm(seg(p, .115, .14)) * (1 - sm(seg(p, .29, .31))); for (const t of deskTags) { t.material.opacity = dt2; t.visible = dt2 > .01; }
+  for (const { t, d } of rackTags) { const o = (d.g.visible && d.g.position.z < .05 ? 1 : 0) * (1 - sm(seg(p, .735, .75))); t.material.opacity = o; t.visible = o > .01; }
+  if (master) master.gain.setTargetAtTime(.05 + .55 * show, actx.currentTime, .4);
+  const vs = sm(seg(p, .44, .47)); for (const m of straps) { m.scale.set(vs, 1, vs); m.visible = vs > .01; }   // straps cinch on once the bundle is in
+  const sl = sm(seg(p, .5, .56)); sleeve.scale.y = Math.max(sl, .001); sleeve.visible = sl > 0; collars[0].visible = sl > 0; collars[1].visible = sl > .98;
+  const st = sm(seg(p, .52, .545)) * (1 - sm(seg(p, .57, .6))); sleeveTag.material.opacity = st; sleeveTag.visible = st > .01;
+  mdfWallM.opacity = 1 - .9 * sm(seg(p, .47, .52));
+
+  const cd = cableDraw(p);
+  for (const c of cables) {
+    const f = c.late ? clamp01((cd - .3) / .7) : cd;
+    c.mesh.geometry.setDrawRange(0, Math.floor(c.count * f / 30) * 30);
+    const live = p > .885;
+    c.pulse.visible = live;
+    if (live) c.pulse.position.copy(c.path.getPointAt((time * .12 + cables.indexOf(c) * .137) % 1));
+  }
+  // devices slide into the rack, bottom-up
+  installOrder.forEach((d, i) => { const t = sm(seg(p, .56 + i * .0066, .575 + i * .0066)); d.g.position.z = (1 - t) * .9; d.g.visible = t > 0; });
+  for (const c of rackCords) {
+    const t = seg(p, c.a, c.b); c.m.geometry.setDrawRange(0, Math.floor(c.count * t / 30) * 30);
+    if (c.boots) { c.boots[0].visible = t > 0; c.boots[1].visible = t >= 1; }
+  }
+  const on = seg(p, .875, .895);
+  const mon = seg(p, .885, .9); monMat.color.setScalar(mon);
+  if (mon > 0 && time - lastCam > .25) { drawCams(time); lastCam = time; }
+  for (const e of etherGlow) { e.lit.emissiveIntensity = on * 1.6; e.glow.material.opacity = on * .55; }
+  ledMats.forEach((m, k) => { m.opacity = on * (Math.sin(time * (7 + k * 3.1) + k) > -.2 ? 1 : .15); });
+
+  for (const el of panels) { const a = +el.dataset.a, b = +el.dataset.b; const o = cq >= 0 ? 0 : Math.min(a <= 0 ? 1 : clamp01((p - a) / .012), clamp01((b - p) / .012)); el.style.opacity = o; el.style.pointerEvents = o > .5 ? 'auto' : 'none'; }
+  updateIDF(p, iq, time);   // after the generic panel pass so its own panel isn't reset
+  updateComm(cq, p, time);
+  const mo = sm(seg(p, .5, .52)) * (1 - sm(seg(p, .57, .59))); for (const t of mdfTags) { t.material.opacity = mo; t.visible = mo > .01; }
+  const dro = access ? sm(seg(q, .62, .68)) * (1 - sm(seg(q, .9, .96))) : 0; for (const t of doorTags) { t.material.opacity = dro; t.visible = dro > .01; }
+  const ap = document.getElementById('accessPanel'), ao = access ? Math.min(clamp01(q / .06), clamp01((1 - q) / .06)) : 0; ap.style.opacity = ao; ap.style.pointerEvents = ao > .5 ? 'auto' : 'none';
+  let cur = -1; steps.forEach((s, i) => { if (p >= +s.dataset.a) cur = i; }); steps.forEach((s, i) => s.classList.toggle('on', i === cur));
+
+  renderer.render(scene, camera);
+  if (ptzOn > .01) {                                    // PTZ picture-in-picture, top right
+    const w = Math.round(Math.min(innerWidth * .36, 420)), h = Math.round(w * .5625), y = innerHeight - 72 - h, x = innerWidth - 16 - w;
+    ptzHud.style.width = w + 'px'; ptzHud.style.height = h + 'px'; ptzCam.aspect = w / h; ptzCam.updateProjectionMatrix();
+    renderer.setScissorTest(true); renderer.setScissor(x, y, w, h); renderer.setViewport(x, y, w, h); renderer.render(scene, ptzCam);
+    renderer.setScissorTest(false); renderer.setViewport(0, 0, innerWidth, innerHeight);
+  }
+});
+
+function resize() { camera.aspect = innerWidth / innerHeight; camera.fov = camera.aspect < .8 ? 62 : 45; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); }
+addEventListener('resize', resize); resize();
+const ld = document.getElementById('loading'); ld.style.opacity = 0; setTimeout(() => ld.remove(), 600);
+</script>
+</body>
+</html>
