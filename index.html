@@ -131,7 +131,7 @@ const slabM = std(0x1c1f25, { roughness: .35, metalness: .7 });                 
 const lobbyGlass = std(0x9fc4dc, { transparent: true, opacity: .16, roughness: .05, metalness: .3, depthWrite: false });   // clear street-level storefronts
 for (let k = -4; k <= 4; k++) {
   const y = k * 3.4;
-  box(24.3, .22, 16.3, slabM, 0, y - .11, 0, exterior);
+  box(24.3, .22, 16.3, slabM, 0, y - (k === 0 ? .13 : .11), 0, exterior);   // our floor's slab sits just under the concrete so the two tops don't fight
   if (k !== 0) box(24, 3.18, 16, k === -4 ? lobbyGlass : towerGlass, 0, y + 1.6, 0, exterior);
 }
 box(24.4, .7, 16.4, slabM, 0, 5 * 3.4 + .1, 0, exterior);                                  // dark crown
@@ -286,7 +286,7 @@ const ceilTex = canvasTex(512, 512, (g, w, h) => {
 });
 ceilTex.wrapS = ceilTex.wrapT = THREE.RepeatWrapping; ceilTex.repeat.set(18.5 / 2.4, 16 / 2.4);
 const ceilM = std(0xffffff, { map: ceilTex, emissive: 0xffffff, emissiveMap: ceilTex, emissiveIntensity: .25, transparent: true, side: THREE.DoubleSide, roughness: .9 });
-const ceiling = add(new THREE.PlaneGeometry(18.5, 16), ceilM, -2.75, CEIL, 0, floor); ceiling.rotation.x = Math.PI / 2;
+const ceiling = add(new THREE.PlaneGeometry(18.5, 16), ceilM, -2.75, CEIL - .006, 0, floor); ceiling.rotation.x = Math.PI / 2;
 
 const steel = std(0x9ea3aa, { metalness: .8, roughness: .35 });
 for (const x of [-10, -5, 0, 5]) box(.1, .14, 16, std(0x3d4047, { metalness: .6, roughness: .5 }), x, 3.85, 0, plenum);
@@ -1107,6 +1107,7 @@ renderer.setAnimationLoop(() => {
   const sl = sm(seg(p, .5, .56)); sleeve.scale.y = Math.max(sl, .001); sleeve.visible = sl > 0; collars[0].visible = sl > 0; collars[1].visible = sl > .98;
   const st = sm(seg(p, .52, .545)) * (1 - sm(seg(p, .57, .6))); sleeveTag.material.opacity = st; sleeveTag.visible = st > .01;
   mdfWallM.opacity = 1 - .9 * sm(seg(p, .47, .52));
+  for (const m of [wallM, ceilM, mdfWallM]) { const t = m.opacity < .99; if (m.transparent !== t) { m.transparent = t; m.depthWrite = !t; m.needsUpdate = true; } }   // solid while opaque, so walls never swap draw order and flash
 
   const cd = cableDraw(p);
   for (const c of cables) {
