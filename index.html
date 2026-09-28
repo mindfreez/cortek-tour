@@ -16,7 +16,7 @@ html,body{margin:0;background:var(--ink);color:var(--text);font:16px/1.6 Montser
 #track{height:2410vh}
 #ptzHud{position:fixed;top:72px;right:16px;border:2px solid #f07f2a;border-radius:6px;z-index:4;pointer-events:none;opacity:0;font:700 11px Montserrat,sans-serif;color:#fff}
 #ptzHud span{position:absolute;left:8px;top:6px;background:rgba(0,0,0,.6);padding:2px 7px;border-radius:4px}
-#ptzHud i{position:absolute;right:8px;top:6px;font-style:normal;color:#ff5a4a}
+#ptzHud i{position:absolute;right:8px;bottom:6px;font-style:normal;color:#ff5a4a}
 .top{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:14px clamp(16px,4vw,40px);z-index:5;pointer-events:none}
 .top img{height:clamp(30px,4vw,44px);pointer-events:auto}
 .btn{pointer-events:auto;display:inline-block;font:700 14px Montserrat,sans-serif;color:var(--ink);background:var(--green);padding:10px 18px;border-radius:999px;text-decoration:none;letter-spacing:.02em}
@@ -39,7 +39,7 @@ html,body{margin:0;background:var(--ink);color:var(--text);font:16px/1.6 Montser
 .steps span{font:600 11px Montserrat;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:5px 10px;border-radius:999px;background:rgba(18,16,22,.7);border:1px solid rgba(255,255,255,.08)}
 .steps span.on{color:var(--ink);background:var(--green);border-color:var(--green)}
 #loading{position:fixed;inset:0;display:grid;place-items:center;background:var(--ink);z-index:9;font:14px Audiowide;letter-spacing:.2em;transition:opacity .5s}
-@media (max-width:700px){.panel{top:auto;bottom:64px;transform:none}.hero{top:42%;bottom:auto;transform:translate(-50%,-50%)}}
+@media (max-width:700px){.panel{top:auto;bottom:50px;transform:none;padding:14px 16px}.panel h2{font-size:22px}.panel p{font-size:14px}.steps{left:0;right:0;bottom:10px;transform:none;max-width:none;flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;scrollbar-width:none;padding:0 12px env(safe-area-inset-bottom)}.steps::-webkit-scrollbar{display:none}.steps span{flex:none;font-size:10px;padding:4px 9px}.hero{top:42%;bottom:auto;transform:translate(-50%,-50%)}}
 </style>
 </head>
 <body>
@@ -1058,6 +1058,7 @@ const idfKeys = [[0, idfPos, idfLook], [.18, [.5, 5.5, 3.5], [-8, 1, 6]], [.35, 
   [.82, [-10.4, 1.45, 6.45], [-11.7, 1.25, 6.9]], [1, idfPos, idfLook]];
 const cableDraw = p => p < .2 ? 0 : p < .3 ? .35 * seg(p, .2, .3) : p < .34 ? .35 : p < .46 ? .35 + .45 * seg(p, .34, .46) : .8 + .2 * seg(p, .46, .55);
 const panels = [...document.querySelectorAll('.panel')].filter(el => el.dataset.a !== '-1'), steps = [...document.querySelectorAll('.steps span')];
+let lastStep = -1;
 let target = 0, pS = 0;
 const readScroll = () => { target = clamp01(scrollY / (document.documentElement.scrollHeight - innerHeight)); };
 addEventListener('scroll', readScroll, { passive: true }); readScroll(); pS = target;
@@ -1137,6 +1138,7 @@ renderer.setAnimationLoop(() => {
   const dro = access ? sm(seg(q, .62, .68)) * (1 - sm(seg(q, .9, .96))) : 0; for (const t of doorTags) { t.material.opacity = dro; t.visible = dro > .01; }
   const ap = document.getElementById('accessPanel'), ao = access ? Math.min(clamp01(q / .06), clamp01((1 - q) / .06)) : 0; ap.style.opacity = ao; ap.style.pointerEvents = ao > .5 ? 'auto' : 'none';
   let cur = -1; steps.forEach((s, i) => { if (p >= +s.dataset.a) cur = i; }); steps.forEach((s, i) => s.classList.toggle('on', i === cur));
+  if (cur !== lastStep && cur >= 0) { lastStep = cur; const el = steps[cur], nav = el.parentNode; nav.scrollTo({ left: el.offsetLeft - nav.clientWidth / 2 + el.offsetWidth / 2, behavior: 'smooth' }); }   // keep the active chip centered on phones
 
   renderer.render(scene, camera);
   if (ptzOn > .01) {                                    // PTZ picture-in-picture, top right
