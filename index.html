@@ -82,7 +82,7 @@ await Promise.race([Promise.all(['600 54px Montserrat', '20px Audiowide'].map(f 
 // ---------- setup ----------
 const PURPLE = 0x6c3aa8, GREEN = 0x46c265;
 const canvas = document.getElementById('gl');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, logarithmicDepthBuffer: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5)); // cap for older laptops/phones
 renderer.setSize(innerWidth, innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -110,7 +110,7 @@ function canvasTex(w, h, draw) {
 const rr = (g, x, y, w, h, r) => { g.beginPath(); g.roundRect(x, y, w, h, r); g.fill(); };
 
 // rack, ears, APs, speakers, cameras, monitor and modem are modeled in Blender (cortek-gear.blend → .glb)
-const gear = (await new GLTFLoader().loadAsync('cortek-gear.glb?v=6')).scene;
+const gear = (await new GLTFLoader().loadAsync('cortek-gear.glb?v=7')).scene;
 const G = name => gear.getObjectByName(name).clone(true);
 const exterior = new THREE.Group(), floor = new THREE.Group(), plenum = new THREE.Group(), mdf = new THREE.Group(), cablesG = new THREE.Group(), logo = new THREE.Group();
 scene.add(exterior, floor, plenum, mdf, cablesG, logo);
@@ -128,10 +128,11 @@ const winTex = canvasTex(1024, 128, (g, w, h) => {
 });
 const towerGlass = std(0xffffff, { map: winTex, emissiveMap: winTex, emissive: 0xffffff, emissiveIntensity: .5, roughness: .06, metalness: .85 });
 const slabM = std(0x1c1f25, { roughness: .35, metalness: .7 });                         // dark metal floor bands
+const lobbyGlass = std(0x9fc4dc, { transparent: true, opacity: .16, roughness: .05, metalness: .3, depthWrite: false });   // clear street-level storefronts
 for (let k = -4; k <= 4; k++) {
   const y = k * 3.4;
   box(24.3, .22, 16.3, slabM, 0, y - .11, 0, exterior);
-  if (k !== 0) box(24, 3.18, 16, towerGlass, 0, y + 1.6, 0, exterior);
+  if (k !== 0) box(24, 3.18, 16, k === -4 ? lobbyGlass : towerGlass, 0, y + 1.6, 0, exterior);
 }
 box(24.4, .7, 16.4, slabM, 0, 5 * 3.4 + .1, 0, exterior);                                  // dark crown
 { const roof = G('Rooftop'); roof.position.set(0, 5 * 3.4 + .45, 0); exterior.add(roof); }            // Blender: penthouse, HVAC, telecom mast, dish
@@ -599,6 +600,53 @@ function drawCams(t) {
   });
   camTex.needsUpdate = true;
 }
+
+// ---------- street-level coffee shop: payment terminals and a camera monitor behind the register ----------
+const shop = new THREE.Group(); shop.position.set(-4, -4 * 3.4, 5.4); exterior.add(shop);   // storefront sits on the tower's front glass (z = 8)
+const glowM = (color, i = .6) => std(color, { emissive: color, emissiveIntensity: i });
+box(6, .03, 5.1, std(0x6b4a33, { roughness: .5 }), 0, .015, 0, shop);                 // wood floor
+box(6, 3.15, .1, glowM(0x3b2a20, .35), 0, 1.6, -2.5, shop);                            // warm back wall
+box(.1, 3.15, 5.1, glowM(0x2c211b, .3), -3, 1.6, 0, shop); box(.1, 3.15, 5.1, glowM(0x2c211b, .3), 3, 1.6, 0, shop);
+box(6, .06, 5.1, glowM(0xfff1d8, .9), 0, 3.12, 0, shop);                               // lit ceiling
+const menuTex = canvasTex(512, 256, (g, w, h) => {
+  g.fillStyle = '#15130f'; g.fillRect(0, 0, w, h); g.fillStyle = '#46c265'; g.font = '700 34px Montserrat'; g.fillText('MENU', 28, 50);
+  g.font = '500 24px Montserrat'; [['Espresso', '3.25'], ['Latte', '4.75'], ['Cold brew', '4.50'], ['Pastries', '3.95']].forEach(([n, p], i) => { g.fillStyle = '#eee'; g.fillText(n, 28, 100 + i * 40); g.fillStyle = '#9aa1ab'; g.fillText(p, 400, 100 + i * 40); });
+});
+add(new THREE.PlaneGeometry(1.8, .9), new THREE.MeshBasicMaterial({ map: menuTex, toneMapped: false }), -1.1, 2.3, -2.44, shop);
+box(3.4, 1, .65, std(0x2a1d15, { roughness: .45 }), -.3, .5, -.7, shop);                // register counter
+box(3.5, .05, .75, std(0xeeeeea, { roughness: .3 }), -.3, 1.02, -.7, shop);
+box(1, .6, .6, std(0xcfe6f2, { transparent: true, opacity: .35, roughness: .05 }), 1.9, 1.35, -.7, shop);   // pastry case
+box(.9, .04, .5, glowM(0xe0a86a, .5), 1.9, 1.2, -.7, shop);
+const posTex = canvasTex(256, 176, (g, w, h) => {
+  g.fillStyle = '#0d1b2a'; g.fillRect(0, 0, w, h); g.fillStyle = '#fff'; g.font = '700 30px Montserrat'; g.fillText('$4.75', 20, 52);
+  g.fillStyle = '#46c265'; rr(g, 20, 80, w - 40, 60, 12); g.fillStyle = '#fff'; g.font = '600 22px Montserrat'; g.fillText('Tap, insert or swipe', 32, 118);
+});
+const posM = std(0x222428, { roughness: .4 }), posScreen = new THREE.MeshBasicMaterial({ map: posTex, toneMapped: false });
+for (const x of [-1.4, -.2]) {
+  box(.3, .05, .22, posM, x, 1.07, -.6, shop);
+  const scr = add(new THREE.PlaneGeometry(.26, .18), posScreen, x, 1.2, -.62, shop); scr.rotation.x = -.35;
+  box(.26, .19, .02, posM, x, 1.2, -.635, shop).rotation.x = -.35;
+  box(.08, .14, .05, posM, x + .24, 1.14, -.5, shop).rotation.x = -.5;                 // card reader facing the customer
+}
+const secTex = canvasTex(512, 300, (g, w, h) => {
+  g.fillStyle = '#101114'; g.fillRect(0, 0, w, h); const tw = (w - 18) / 2, th = (h - 18) / 2;
+  [['REGISTER', 'lobby'], ['FRONT DOOR', 'door'], ['PARKING', 'lot'], ['BACK ROOM', 'hall']].forEach(([n, type], i) => {
+    const x = 6 + (i % 2) * (tw + 6), y = 6 + Math.floor(i / 2) * (th + 6); camScene(g, type, x, y, tw, th, 0, i);
+    g.fillStyle = 'rgba(0,0,0,.55)'; rr(g, x + 5, y + th - 24, 110, 19, 4); g.fillStyle = '#fff'; g.font = '600 12px Montserrat'; g.fillText(n, x + 12, y + th - 10);
+  });
+});
+box(1, .6, .05, posM, 1.5, 2.3, -2.42, shop);
+add(new THREE.PlaneGeometry(.94, .54), new THREE.MeshBasicMaterial({ map: secTex, toneMapped: false }), 1.5, 2.3, -2.39, shop);
+{ const d = G('Dome'); d.position.set(.2, 3.09, -.2); shop.add(d); }                   // ceiling camera over the register
+const signTex = canvasTex(512, 128, (g, w, h) => { g.fillStyle = '#121016'; g.fillRect(0, 0, w, h); g.fillStyle = '#46c265'; g.font = '700 64px Audiowide, sans-serif'; g.textAlign = 'center'; g.fillText('COFFEE', w / 2, 88); });
+add(new THREE.PlaneGeometry(2.4, .6), new THREE.MeshBasicMaterial({ map: signTex, toneMapped: false }), 0, 2.75, 2.62, shop);
+const tblM = std(0x2b2d31, { metalness: .6, roughness: .35 });
+for (const x of [-1.6, 1.2]) {                                                            // sidewalk tables
+  add(new THREE.CylinderGeometry(.35, .35, .04, 20), tblM, x, .42, 3.6, shop); add(new THREE.CylinderGeometry(.03, .03, .72, 8), tblM, x, .06, 3.6, shop);
+  for (const s of [-1, 1]) { box(.4, .04, .4, tblM, x + s * .6, .15, 3.6, shop); box(.04, .45, .4, tblM, x + s * .8, .38, 3.6, shop); }
+}
+const shopTags = [label('Payment terminals', '#46c265'), label('Cameras on the register', '#4aa3ff')];
+shopTags[0].position.set(-.8, 1.75, -.3); shopTags[1].position.set(1.5, 2.95, -2.2); shopTags.forEach(s => shop.add(s));
 drawCams(0);
 
 const installOrder = [...devices].sort((a, b) => b.u - a.u);   // top-down
@@ -1084,6 +1132,7 @@ renderer.setAnimationLoop(() => {
   updateIDF(p, iq, time);   // after the generic panel pass so its own panel isn't reset
   updateComm(cq, p, time);
   const mo = sm(seg(p, .5, .52)) * (1 - sm(seg(p, .57, .59))); for (const t of mdfTags) { t.material.opacity = mo; t.visible = mo > .01; }
+  const so = gq >= 0 ? sm(seg(gq, .68, .76)) : 0; for (const t of shopTags) { t.material.opacity = so; t.visible = so > .01; }
   const dro = access ? sm(seg(q, .62, .68)) * (1 - sm(seg(q, .9, .96))) : 0; for (const t of doorTags) { t.material.opacity = dro; t.visible = dro > .01; }
   const ap = document.getElementById('accessPanel'), ao = access ? Math.min(clamp01(q / .06), clamp01((1 - q) / .06)) : 0; ap.style.opacity = ao; ap.style.pointerEvents = ao > .5 ? 'auto' : 'none';
   let cur = -1; steps.forEach((s, i) => { if (p >= +s.dataset.a) cur = i; }); steps.forEach((s, i) => s.classList.toggle('on', i === cur));
