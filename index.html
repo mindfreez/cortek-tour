@@ -54,13 +54,13 @@ html,body{margin:0;background:var(--ink);color:var(--text);font:16px/1.6 Montser
 </section>
 <section class="panel left" id="gatePanel" data-a="-1" data-b="-1"><div class="k">Gate &amp; parking</div><h2>See who's at the gate</h2><p>A video intercom takes a code, badge or phone tap and opens the gate. A PTZ camera pans, tilts and zooms right in on the driver.</p></section>
 <section class="panel left" id="shopPanel" data-a="-1" data-b="-1"><div class="k">Lobby &amp; retail</div><h2>Grab a coffee. Head up.</h2><p>The coffee shop's payment terminals and register cameras run on their own secure network, and a glass elevator takes you up to the suite.</p></section>
-<section class="panel left" id="dashPanel" data-a="-1" data-b="-1"><div class="k">Manager dashboard</div><h2>Run it all from one screen</h2><p>Add door access users, pull up any camera, and see the phone system with every call logged, from the office or your phone.</p></section>
+<section class="panel left" id="dashPanel" data-a="-1" data-b="-1"><div class="k">Manager dashboard</div><h2>Run it all from one screen</h2><p>Add door access users, pull up any camera, see every call logged, and set music volume zone by zone, from the office or your phone.</p></section>
 <div id="ptzHud"><span>PTZ CAM 01</span><i>● LIVE</i></div>
 <section class="panel right" id="commPanel" data-a="-1" data-b="-1"><div class="k">Communication</div><h2>Everyone stays connected</h2><p>Desk phones, corded or Bluetooth headsets, or just an app on the PC. Calls, chat and voicemail all live in one app, at the desk or anywhere.</p></section>
 <section class="panel left" id="accessPanel" data-a="-1" data-b="-1"><div class="k">Access control</div><h2>Tap in. Doors open.</h2><p>Access readers unlock doors with a phone tap, badge or face ID, and every entry is logged. Once inside, your phone joins the Wi-Fi on its own.</p></section>
 <section class="panel left" data-a="0.11" data-b="0.145"><div class="k">01 · Workspace</div><h2>Every seat, its own drop</h2><p>Every workstation, TV and phone gets its own dedicated, tested connection. No daisy-chained switches under desks.</p></section>
 <section class="panel right" data-a="0.19" data-b="0.3"><div class="k">02 · Terminations</div><h2>Plates on the wall, cable in the wall</h2><p>Keystone jacks snap into labeled wall plates, and each run goes up inside the wall. Nothing lying across the floor.</p></section>
-<section class="panel left" data-a="0.32" data-b="0.45"><div class="k">03 · Pathways</div><h2>Above the ceiling, done properly</h2><p>Cables bundle into a trunk on J-hooks. Access points blanket every room, so phones roam AP to AP without dropping. Ceiling speakers carry music and paging, and cameras cover every entrance.</p></section>
+<section class="panel left" data-a="0.32" data-b="0.45"><div class="k">03 · Pathways</div><h2>Above the ceiling, done properly</h2><p>Cables bundle into a trunk on J-hooks. Access points blanket every room, so phones roam AP to AP without dropping. Ceiling speakers carry music and paging in separate zones, each with its own volume, and cameras cover every entrance.</p></section>
 <section class="panel right" data-a="0.47" data-b="0.56"><div class="k">04 · MDF · Main Distribution Frame</div><h2>Welcome to the Mainframe</h2><p>Where the core technology lives. The main trunk arrives on a ladder rack and drops into the rack inside a protective sleeve, the way code requires.</p></section>
 <section class="panel right" id="idfPanel" data-a="-1" data-b="-1"><div class="k">IDF · Intermediate Distribution Frame</div><h2>Welcome to the Intermediate Frame</h2><p>A smaller wall-mount rack closer to the users, with its own switches, patch panels and battery backup, tied back to the Mainframe (MDF) over fiber.</p></section>
 <section class="panel left" data-a="0.58" data-b="0.73"><div class="k">05 · Rack build</div><h2>Built from the top down</h2><p>The monitor shelf and fiber go in first, then patch panels and switches, the door access hub, the firewall, modem, PDU, audio amp, camera recorder and, at the bottom, battery backup.</p></section>
@@ -371,14 +371,14 @@ function viewCone(parent, len, radius, color, list) {
   const geo = new THREE.ConeGeometry(radius, len, 28, 1, true); geo.translate(0, -len / 2, 0);
   const m = add(geo, glowMat(color), 0, 0, 0, parent); list.push({ m, kind: 'cone' }); return m;
 }
-function ceilDevice(kind, x, z) {
+function ceilDevice(kind, x, z, zone) {
   const g = new THREE.Group(); g.position.set(x, CEIL - .005, z); floor.add(g);
   if (kind === 'ap') {                                   // UniFi-style AP: white disc, glowing ring
     g.add(G('AP')); aps.push(g);
     ripples(x, z, 0x3aa0ff, 1.8, .45); tag('Wi-Fi access point', '#5fb4ff', x, CEIL - .34, z);
   } else if (kind === 'speaker') {
     g.add(G('Speaker'));
-    ripples(x, z, GREEN, 1.2, .6); tag('Music & paging', '#46c265', x, CEIL - .34, z);
+    ripples(x, z, GREEN, 1.2, .6); tag(zone, '#46c265', x, CEIL - .34, z);
     for (let k = 0; k < 3; k++) { const n = new THREE.Sprite(new THREE.SpriteMaterial({ map: noteTex, transparent: true, opacity: 0, depthWrite: false })); n.scale.setScalar(.16); floor.add(n); fx.push({ m: n, kind: 'note', x, z, ph: k / 3 }); }
   } else {                                               // dome camera + its field of view
     g.add(G('Dome'));
@@ -390,7 +390,8 @@ function ceilDevice(kind, x, z) {
   cables.push({ type, pts: [V(x, CEIL, z), V(x, PLEN - .03, z), V(x, PLEN, TRUNK_Z)], entryX: x, late: true });
 }
 ceilDevice('ap', -8.5, 1.0); ceilDevice('ap', -3.2, -5.0); ceilDevice('ap', 3.0, -5.2); ceilDevice('ap', -3.5, 5.5);
-ceilDevice('speaker', -10.2, -4.6); ceilDevice('speaker', -5.2, 5.2); ceilDevice('speaker', 1.8, -4.6); ceilDevice('speaker', -1.6, 1.6);
+ceilDevice('speaker', -10.2, -4.6, 'Audio zone 1 · Open office'); ceilDevice('speaker', -5.2, 5.2, 'Audio zone 1 · Open office');   // each zone has its own volume (see the dashboard's Audio tab)
+ceilDevice('speaker', 1.8, -4.6, 'Audio zone 2 · Conference'); ceilDevice('speaker', -1.6, 1.6, 'Audio zone 3 · Break area');
 ceilDevice('camera', -11.3, 7.2); ceilDevice('camera', 6.0, -3.0); ceilDevice('camera', .5, 6.6);    // corners + suite entry
 ceilDevice('camera', -1.2, -7.2); ceilDevice('camera', 3.0, -4.0); ceilDevice('camera', 11.4, -4.0); // back hall, conference, MDF
 cables.pop(); cables.push({ type: 'camera', pts: [V(11.4, CEIL, -4.0), V(11.4, 2.55, -4.0), V(11.4, 2.55, -6.25), V(9.15, 2.42, -6.25), V(9.05, 1.3, -6.25)], late: true, noTrunk: true });   // MDF camera drops straight onto the ladder
@@ -697,6 +698,7 @@ drawSec(0);
 box(1.5, .9, .05, posM, .3, 2.25, -2.42, shop);
 add(new THREE.PlaneGeometry(1.44, .81), new THREE.MeshBasicMaterial({ map: secTex, toneMapped: false }), .3, 2.25, -2.39, shop);
 { const d = G('Dome'); d.position.set(.2, 3.09, -.2); shop.add(d); }                   // ceiling camera over the register
+{ const s = G('Speaker'); s.position.set(-1.6, 3.09, 1.2); shop.add(s); }             // the shop is its own tenant and its own audio zone
 const signTex = canvasTex(512, 128, (g, w, h) => { g.fillStyle = '#121016'; g.fillRect(0, 0, w, h); g.fillStyle = '#46c265'; g.font = '700 64px Audiowide, sans-serif'; g.textAlign = 'center'; g.fillText('COFFEE', w / 2, 88); });
 add(new THREE.PlaneGeometry(2.4, .6), new THREE.MeshBasicMaterial({ map: signTex, toneMapped: false }), 0, 2.75, 2.62, shop);
 const tblM = std(0x2b2d31, { metalness: .6, roughness: .35 });
@@ -1195,7 +1197,7 @@ function drawDash(tab, t, typed) {
   const g = dashCanvas.getContext('2d'), W = 1024, H = 578;
   g.fillStyle = '#f4f6fa'; g.fillRect(0, 0, W, H); g.fillStyle = '#121016'; g.fillRect(0, 0, W, 54); g.fillStyle = '#1b1f2a'; g.fillRect(0, 54, 170, H);
   g.fillStyle = '#46c265'; g.font = '700 20px Montserrat'; g.fillText('CorTek Command', 18, 35);
-  ['Access', 'Cameras', 'Phones', 'Network'].forEach((n, i) => { g.fillStyle = n === tab ? '#46c265' : '#aeb6c4'; g.font = '600 17px Montserrat'; g.fillText(n, 22, 100 + i * 44); if (n === tab) g.fillRect(0, 84 + i * 44, 4, 24); });
+  ['Access', 'Cameras', 'Phones', 'Audio', 'Network'].forEach((n, i) => { g.fillStyle = n === tab ? '#46c265' : '#aeb6c4'; g.font = '600 17px Montserrat'; g.fillText(n, 22, 100 + i * 44); if (n === tab) g.fillRect(0, 84 + i * 44, 4, 24); });
   g.fillStyle = '#1b2230';
   if (tab === 'Access') {
     g.font = '700 22px Montserrat'; g.fillText('Door access · users', 196, 92);
@@ -1215,6 +1217,24 @@ function drawDash(tab, t, typed) {
     [['10:42 AM', 'Front Desk → Ext 104', 'Answered', '3:12'], ['10:31 AM', '(407) 555-0142 → Main', 'Answered', '1:05'], ['10:18 AM', 'Ext 112 → (321) 555-0199', 'Outbound', '6:40'], ['10:02 AM', '(689) 555-0117 → Main', 'Voicemail', '0:42'], ['9:55 AM', 'Ext 101 → Ext 108', 'Answered', '0:58']].forEach((r, i) => {
       g.fillStyle = i % 2 ? '#fff' : '#eef2f8'; g.fillRect(196, 248 + i * 44, 800, 42); g.fillStyle = r[2] === 'Voicemail' ? '#e0453a' : '#1b2230'; g.font = '600 15px Montserrat';
       r.forEach((c, j) => g.fillText(c, 210 + [0, 120, 470, 640][j], 275 + i * 44)); });
+  } else if (tab === 'Audio') {                             // zone mixer: one channel strip per zone; `typed` turns the conference room down
+    g.font = '700 22px Montserrat'; g.fillText('Audio zones', 196, 92); g.fillStyle = '#6b7587'; g.font = '600 14px Montserrat'; g.fillText('Music & paging · 4 zones · 2 tenants', 340, 92);
+    g.fillStyle = '#2f7fe0'; rr(g, 846, 70, 150, 30, 15); g.fillStyle = '#fff'; g.font = '700 13px Montserrat'; g.fillText('Page all zones', 874, 90);
+    const conf = Math.round(65 - 40 * typed);
+    [['Open office', 'Suite 400', 'Lo-fi playlist', 55, false], ['Conference', 'Suite 400', typed >= 1 ? 'Meeting · turned down' : 'Lo-fi playlist', conf, false],
+      ['Break area', 'Suite 400', 'Lo-fi playlist', 40, true], ['Coffee shop', 'Lobby tenant', 'Café radio', 72, false]].forEach(([n, ten, src, v, mute], i) => {
+      const x = 196 + i * 202, y = 110, top = y + 116, fh = 220, lvl = mute ? 0 : v / 100 * (.72 + .28 * Math.abs(Math.sin(t * 3.1 + i * 1.7)));
+      g.fillStyle = '#fff'; rr(g, x, y, 190, 440, 10); g.strokeStyle = '#d5dbe6'; g.lineWidth = 1; g.beginPath(); g.roundRect(x, y, 190, 440, 10); g.stroke();
+      g.font = '700 12px Montserrat'; g.fillStyle = i === 3 ? '#6c3aa8' : '#2f7fe0'; rr(g, x + 14, y + 14, g.measureText(ten).width + 20, 22, 11); g.fillStyle = '#fff'; g.fillText(ten, x + 24, y + 30);
+      g.fillStyle = '#1b2230'; g.font = '700 19px Montserrat'; g.fillText(n, x + 14, y + 66); g.fillStyle = '#6b7587'; g.font = '600 13px Montserrat'; g.fillText(src, x + 14, y + 90);
+      g.fillStyle = '#e3e8f0'; rr(g, x + 50, top, 8, fh, 4);                                   // fader track, filled up to the level
+      const ky = top + fh * (1 - v / 100); g.fillStyle = mute ? '#c9d1de' : '#46c265'; rr(g, x + 50, ky, 8, top + fh - ky, 4);
+      g.fillStyle = '#1b2230'; rr(g, x + 34, ky - 8, 40, 16, 4); g.fillStyle = '#fff'; g.fillRect(x + 42, ky - 1, 24, 2);
+      for (let k = 0; k < 14; k++) { const lit = (k + .5) / 14 < lvl; g.fillStyle = !lit ? '#eef2f8' : k >= 12 ? '#e0453a' : k >= 9 ? '#f2c230' : '#46c265';   // level meter
+        for (const mx of [110, 130]) g.fillRect(x + mx, top + fh - (k + 1) * (fh / 14) + 2, 12, fh / 14 - 4); }
+      g.fillStyle = mute ? '#e0453a' : '#1b2230'; g.font = '700 26px Montserrat'; g.fillText(mute ? 'Muted' : v + '%', x + 14, y + 400);
+      g.fillStyle = mute ? '#e0453a' : '#eef2f8'; rr(g, x + 112, y + 378, 64, 30, 15); g.fillStyle = mute ? '#fff' : '#6b7587'; g.font = '700 13px Montserrat'; g.fillText(mute ? 'Unmute' : 'Mute', x + (mute ? 119 : 128), y + 398);
+    });
   }
   dashTex.needsUpdate = true;
 }
@@ -1222,7 +1242,7 @@ const dashKeys = [[0, ...poseAt(DASH_A)], [.22, [2.55, 1.6, -5.05], [2.3, 1.45, 
 let lastDash = -1;
 function updateDash(dq, time) {
   const on = dq >= 0; tvScreen.material.map = on ? dashTex : tvLogo; cablesG.visible = !on;
-  if (on && time - lastDash > .2) { lastDash = time; const tab = dq < .42 ? 'Access' : dq < .66 ? 'Cameras' : 'Phones'; if (tab === 'Cameras') drawCams(time); drawDash(tab, time, seg(dq, .12, .36)); }
+  if (on && time - lastDash > .2) { lastDash = time; const tab = dq < .36 ? 'Access' : dq < .52 ? 'Cameras' : dq < .68 ? 'Phones' : 'Audio'; if (tab === 'Cameras') drawCams(time); drawDash(tab, time, tab === 'Audio' ? sm(seg(dq, .72, .8)) : seg(dq, .1, .32)); }
   const dp = document.getElementById('dashPanel'), o = on ? Math.min(clamp01(dq / .05), clamp01((1 - dq) / .05)) : 0; dp.style.opacity = o;
 }
 const [idfPos, idfLook] = poseAt(IDF_A);
