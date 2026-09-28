@@ -13,7 +13,7 @@
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--ink);color:var(--text);font:16px/1.6 Montserrat,system-ui,sans-serif}
 #gl{position:fixed;inset:0;width:100%;height:100%;display:block}
-#track{height:2410vh}
+#track{height:2780vh}
 #ptzHud{position:fixed;top:72px;right:16px;border:2px solid #f07f2a;border-radius:6px;z-index:4;pointer-events:none;opacity:0;font:700 11px Montserrat,sans-serif;color:#fff}
 #ptzHud span{position:absolute;left:8px;top:6px;background:rgba(0,0,0,.6);padding:2px 7px;border-radius:4px}
 #ptzHud i{position:absolute;right:8px;bottom:6px;font-style:normal;color:#ff5a4a}
@@ -53,6 +53,7 @@ html,body{margin:0;background:var(--ink);color:var(--text);font:16px/1.6 Montser
   <div class="hint">SCROLL TO BUILD ↓</div>
 </section>
 <section class="panel left" id="gatePanel" data-a="-1" data-b="-1"><div class="k">Gate &amp; parking</div><h2>See who's at the gate</h2><p>A video intercom takes a code, badge or phone tap and opens the gate. A PTZ camera pans, tilts and zooms right in on the driver.</p></section>
+<section class="panel left" id="shopPanel" data-a="-1" data-b="-1"><div class="k">Lobby &amp; retail</div><h2>Grab a coffee. Head up.</h2><p>The coffee shop's payment terminals and register cameras run on their own secure network, and a glass elevator takes you up to the suite.</p></section>
 <section class="panel left" id="dashPanel" data-a="-1" data-b="-1"><div class="k">Manager dashboard</div><h2>Run it all from one screen</h2><p>Add door access users, pull up any camera, and see the phone system with every call logged, from the office or your phone.</p></section>
 <div id="ptzHud"><span>PTZ CAM 01</span><i>● LIVE</i></div>
 <section class="panel right" id="commPanel" data-a="-1" data-b="-1"><div class="k">Communication</div><h2>Everyone stays connected</h2><p>Desk phones, corded or Bluetooth headsets, or just an app on the PC. Calls, chat and voicemail all live in one app, at the desk or anywhere.</p></section>
@@ -68,7 +69,7 @@ html,body{margin:0;background:var(--ink);color:var(--text);font:16px/1.6 Montser
 <section class="panel left" data-a="0.9" data-b="0.935"><div class="k">08 · Security</div><h2>Every camera, one screen</h2><p>Entry and exit doors, parking, hallways and the network room, recorded around the clock and live on the rack monitor.</p></section>
 <section class="panel right cta" id="quote" data-a="0.94" data-b="1.01"><div class="k">CorTek Systems</div><h2>Let's build yours.</h2><p>Offices, retail, restaurants and warehouses. Structured cabling, Wi-Fi, cameras, audio and network racks, installed right the first time.</p><div class="row"><a class="btn" href="https://corteksystems.com/contact/">Get a free quote</a><a class="btn ghost" href="https://corteksystems.com/">Our services</a></div></section>
 
-<nav class="steps" aria-label="Progress"><span data-a="0.08">Gate</span><span data-a="0.1">Access</span><span data-a="0.105">Desk</span><span data-a="0.15">Phones</span><span data-a="0.19">Wall</span><span data-a="0.31">Ceiling</span><span data-a="0.46">MDF</span><span data-a="0.57">Rack</span><span data-a="0.85">Online</span><span data-a="0.895">IDF</span><span data-a="0.9">Security</span><span data-a="0.935">Dashboard</span></nav>
+<nav class="steps" aria-label="Progress"><span data-a="0.08">Gate</span><span data-a="0.09">Lobby</span><span data-a="0.1">Access</span><span data-a="0.105">Desk</span><span data-a="0.15">Phones</span><span data-a="0.19">Wall</span><span data-a="0.31">Ceiling</span><span data-a="0.46">MDF</span><span data-a="0.57">Rack</span><span data-a="0.85">Online</span><span data-a="0.895">IDF</span><span data-a="0.9">Security</span><span data-a="0.935">Dashboard</span></nav>
 <div id="track"></div>
 
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
@@ -147,7 +148,7 @@ const tx = (file, rx = 1, ry = 1) => { const t = texL.load('tex/' + file); t.col
 box(24, .1, 16, std(0xffffff, { map: tx('concrete.jpg', 6, 4), roughness: .4 }), 0, -.05, 0, floor);                 // polished concrete
 box(12, .012, 10, std(0xffffff, { map: tx('carpet.jpg', 8, 7), roughness: .95 }), -6, .006, 3, floor);              // carpet, open office
 const wallM = std(0xf3f1ed, { roughness: .9, transparent: true });
-box(24, CEIL, .12, wallM, 0, CEIL / 2, -8, floor);                                     // back wall
+box(11.5, CEIL, .12, wallM, 6.25, CEIL / 2, -8, floor);                               // back wall behind the conference room + MDF (the desk side is glazed, below)
 box(.12, CEIL, 16, wallM, -12, CEIL / 2, 0, floor);                                    // left wall
 box(.02, .9, 3, std(0x3a2360, { roughness: .8 }), -11.93, 1.9, 4.5, floor);               // brand accent panel
 
@@ -251,6 +252,21 @@ deskXs.forEach((x, i) => {
   const px = x + .52; wallPlate(px, .45, -7.93, 'z');
   cables.push({ type: 'data', pts: [s, V(s.x, .25, s.z), V(px, .25, -7.86), V(px, .45, -7.9), V(px, .45, -8.0), V(px, PLEN, -8.0), V(px, PLEN, -7.6), V(px, PLEN, TRUNK_Z)], entryX: px });
 });
+// back-row desks face a ribbon window: the sill carries their wall plates and each mullion hides a desk's cable drop
+const skyTex = canvasTex(1536, 196, (g, w, h) => {
+  const sky = g.createLinearGradient(0, 0, 0, h); sky.addColorStop(0, '#5d7cab'); sky.addColorStop(.6, '#b7c2d0'); sky.addColorStop(1, '#efc49c');
+  g.fillStyle = sky; g.fillRect(0, 0, w, h);
+  for (let layer = 0; layer < 2; layer++) for (let x = -20; x < w;) {                    // far towers, then nearer ones with lit windows
+    const bw = 40 + Math.random() * 90, bh = (layer ? 30 : 60) + Math.random() * 70;
+    g.fillStyle = layer ? '#56647a' : '#8a97aa'; g.fillRect(x, h - bh, bw, bh);
+    if (layer) { g.fillStyle = 'rgba(255,226,170,.55)'; for (let yy = h - bh + 8; yy < h - 6; yy += 11) for (let xx = x + 5; xx < x + bw - 6; xx += 10) if (Math.random() < .3) g.fillRect(xx, yy, 5, 6); }
+    x += bw + 4 + Math.random() * 20;
+  }
+  g.fillStyle = 'rgba(255,255,255,.08)'; for (const x0 of [.1, .55]) { g.beginPath(); g.moveTo(w * x0, 0); g.lineTo(w * (x0 + .07), 0); g.lineTo(w * (x0 + .02), h); g.lineTo(w * (x0 - .05), h); g.fill(); }   // glass glare
+});
+box(12.5, .85, .12, wallM, -5.75, .425, -8, floor); box(12.5, CEIL - 2.45, .12, wallM, -5.75, (CEIL + 2.45) / 2, -8, floor);   // sill + header
+for (const x of [...deskXs.map(x => x + .52), -1.08]) box(.12, 1.6, .12, wallM, x, 1.65, -8, floor);                    // mullions
+add(new THREE.PlaneGeometry(12.5, 1.6), new THREE.MeshBasicMaterial({ map: skyTex }), -5.75, 1.65, -8.03, floor);
 // cubicle pod around a power pole
 box(4.2, 1.25, .06, std(0x6e6a7a, { roughness: 1 }), -7, .62, 2.5, floor);
 box(.06, 1.25, 2.2, std(0x6e6a7a, { roughness: 1 }), -7, .62, 2.5, floor);
@@ -266,9 +282,14 @@ box(5, CEIL, .03, glassM, 3, CEIL / 2, -3.5, floor); box(.03, CEIL, 4.5, glassM,
 box(5, .05, .05, std(0x9aa0a8, { metalness: .8, roughness: .3 }), 3, CEIL - .03, -3.5, floor);
 box(3.2, .05, 1.2, std(0x5a3b28, { roughness: .45 }), 3, .74, -5.75, floor); box(.2, .7, .8, black, 3, .37, -5.75, floor);
 for (let i = 0; i < 6; i++) { const c = new THREE.Group(); c.position.set(1.9 + (i % 3) * 1.1, 0, i < 3 ? -6.6 : -4.9); c.rotation.y = i < 3 ? 0 : Math.PI; floor.add(c); chair(c); }
-const logoImg = new THREE.TextureLoader().load('cortek-logo.png'); logoImg.colorSpace = THREE.SRGBColorSpace;
+const tvLogo = canvasTex(1024, 578, (g, w, h) => {        // a made-up tenant's brand on the conference TV (this is a client office, not ours)
+  const bg = g.createLinearGradient(0, 0, w, h); bg.addColorStop(0, '#17344c'); bg.addColorStop(1, '#0b1826'); g.fillStyle = bg; g.fillRect(0, 0, w, h);
+  [['#f2b441', -38], ['#e8734a', 0], ['#5fc4b8', 38]].forEach(([c, dx]) => { g.fillStyle = c; g.globalAlpha = .88; g.beginPath(); g.ellipse(w / 2 + dx, 215, 30, 72, dx / 110, 0, 7); g.fill(); });
+  g.globalAlpha = 1; g.textAlign = 'center'; g.fillStyle = '#f4efe6'; g.font = '700 84px Montserrat'; g.fillText('LARKSPUR', w / 2, 395);
+  g.fillStyle = '#9fb3c6'; g.font = '600 26px Montserrat'; g.fillText('D E S I G N   S T U D I O', w / 2, 448);
+});
 const tv = box(1.45, .84, .04, black, 3, 1.45, -7.91, floor);
-const tvScreen = add(new THREE.PlaneGeometry(1.4, .79), new THREE.MeshBasicMaterial({ map: logoImg }), 0, 0, .021, tv);
+const tvScreen = add(new THREE.PlaneGeometry(1.4, .79), new THREE.MeshBasicMaterial({ map: tvLogo }), 0, 0, .021, tv);
 wallPlate(3.95, 1.2, -7.93, 'z');
 cables.push({ type: 'tv', pts: [V(3.4, 1.4, -7.88), V(3.95, 1.2, -7.9), V(3.95, 1.2, -8.0), V(3.95, PLEN, -8.0), V(3.95, PLEN, -7.6), V(3.95, PLEN, TRUNK_Z)], entryX: 3.95 });
 // open-office TV on the left wall
@@ -277,6 +298,27 @@ const dash = add(new THREE.PlaneGeometry(1.15, .66), screenM, .021, 0, 0, tv2); 
 wallPlate(-11.93, 1.25, -.25, 'x');
 cables.push({ type: 'tv', pts: [V(-11.88, 1.5, -.6), V(-11.9, 1.25, -.25), V(-12.0, 1.25, -.25), V(-12.0, PLEN, -.25), V(-11.6, PLEN, -.25), V(-11.6, PLEN, TRUNK_Z)], entryX: -11.6 });
 plant(-8.6, 7.3); plant(-.8, 7.3); plant(-1.2, -7.3); plant(5.9, 6.9);
+// a few furnishings: lounge by the front glass, kitchenette on the suite wall, credenza under the signage TV, whiteboard by the pod
+const fabric = std(0x4b5d6b, { roughness: 1 }), metalM = std(0x9aa0a8, { metalness: .8, roughness: .3 });
+box(2.6, .012, 1.9, std(0x5d5470, { roughness: 1 }), 3.0, .008, 6.75, floor);                                   // rug
+box(2.0, .42, .85, fabric, 3.0, .21, 7.35, floor); box(2.0, .45, .2, fabric, 3.0, .64, 7.68, floor);            // sofa, back to the glass
+for (const s of [-1, 1]) box(.18, .6, .85, fabric, 3.0 + s * .91, .3, 7.35, floor);
+box(1.1, .04, .55, oak, 3.0, .4, 6.35, floor); box(.9, .38, .4, black, 3.0, .19, 6.35, floor);                   // coffee table
+box(.6, .88, 1.7, oak, 6.14, .44, 2.85, floor); box(.64, .04, 1.74, std(0xf4f4f2, { roughness: .25 }), 6.12, .9, 2.85, floor);   // kitchenette: base cabinets + counter
+box(.35, .7, 1.7, std(0xe4e1da, { roughness: .6 }), 6.265, 1.85, 2.85, floor);                                   // upper cabinets
+box(.7, 1.85, .72, std(0xc9cdd3, { metalness: .6, roughness: .35 }), 6.09, .925, 1.5, floor); box(.03, .6, .03, black, 5.72, 1.2, 1.78, floor);   // fridge
+box(.22, .32, .24, black, 6.2, 1.08, 3.45, floor); box(.36, .012, .44, metalM, 6.12, .922, 2.55, floor);          // coffee machine, sink
+add(new THREE.CylinderGeometry(.32, .32, .035, 24), oak, 4.9, 1.02, 2.55, floor); add(new THREE.CylinderGeometry(.03, .03, 1, 8), black, 4.9, .5, 2.55, floor);   // bistro table
+for (const s of [-1, 1]) { add(new THREE.CylinderGeometry(.17, .17, .05, 16), chairM, 4.9, .74, 2.55 + s * .6, floor); add(new THREE.CylinderGeometry(.025, .025, .72, 8), black, 4.9, .36, 2.55 + s * .6, floor); }
+box(.45, .6, 1.6, oak, -11.7, .3, -1, floor); box(.47, .03, 1.62, black, -11.7, .615, -1, floor);                // credenza under the signage TV
+const wbTex = canvasTex(512, 280, (g, w, h) => {                                                                  // sprint board
+  g.fillStyle = '#fbfbf8'; g.fillRect(0, 0, w, h); g.fillStyle = '#2f5fbf'; g.font = '700 22px Montserrat'; g.fillText('This week', 16, 30);
+  ['To do', 'Doing', 'Done'].forEach((t, i) => { const x = 16 + i * 166; g.fillStyle = '#444'; g.font = '600 16px Montserrat'; g.fillText(t, x, 62); g.fillRect(x, 68, 150, 2);
+    for (let k = 0; k < 4 - i; k++) { g.fillStyle = ['#ffe27a', '#ffb3c7', '#a8e6b8', '#9fd0ff'][(i + k) % 4]; g.fillRect(x + (k % 2) * 74, 80 + (k >> 1) * 74, 66, 64); } });
+  g.strokeStyle = '#e0453a'; g.lineWidth = 3; g.beginPath(); g.moveTo(16, h - 20); for (let x = 16; x < 220; x += 12) g.lineTo(x, h - 20 - Math.sin(x * .08) * 6); g.stroke();
+});
+box(.03, 1.05, 1.85, metalM, -11.93, 1.55, 1.3, floor);
+add(new THREE.PlaneGeometry(1.78, .98), std(0xffffff, { map: wbTex, roughness: .3 }), -11.91, 1.55, 1.3, floor).rotation.y = Math.PI / 2;
 
 // ---------- ceiling, J-hooks, ceiling devices ----------
 const ceilTex = canvasTex(512, 512, (g, w, h) => {
@@ -363,7 +405,9 @@ function bullet(x, y, z, rotY, tilt = .45) {
 const G0 = -4 * 3.4;                                                                          // ground-floor slab
 const doorM = std(0x0e1b27, { roughness: .08, metalness: .6 }), frameM = std(0xb6bcc4, { metalness: .7, roughness: .3 });
 box(5.2, .14, 1.5, slabM, 0, G0 + 2.95, 8.75, exterior);                                     // entry canopy
-box(2.8, 2.45, .05, doorM, 0, G0 + 1.23, 8.04, exterior); box(.06, 2.45, .07, frameM, 0, G0 + 1.23, 8.05, exterior);
+const entryDoors = [-1, 1].map(s => box(1.4, 2.45, .05, doorM, s * .7, G0 + 1.23, 8.04, exterior));   // automatic sliding doors
+for (const s of [-1, 1]) box(.06, 2.45, .07, frameM, s * 1.43, G0 + 1.23, 8.05, exterior);
+box(27, .3, 3.5, std(0x8a877f, { roughness: .95 }), .5, G0 - .15, 9.75, exterior);                // sidewalk along the storefronts
 box(.05, 2.3, 1.2, doorM, 12.03, G0 + 1.15, -3, exterior);                                    // side exit
 box(1.2, 2.3, .05, doorM, -4, G0 + 1.15, -8.03, exterior);                                    // rear exit
 bullet(-2.1, G0 + 2.7, 8.05, 0); bullet(2.1, G0 + 2.7, 8.05, 0);
@@ -612,7 +656,7 @@ const menuTex = canvasTex(512, 256, (g, w, h) => {
   g.fillStyle = '#15130f'; g.fillRect(0, 0, w, h); g.fillStyle = '#46c265'; g.font = '700 34px Montserrat'; g.fillText('MENU', 28, 50);
   g.font = '500 24px Montserrat'; [['Espresso', '3.25'], ['Latte', '4.75'], ['Cold brew', '4.50'], ['Pastries', '3.95']].forEach(([n, p], i) => { g.fillStyle = '#eee'; g.fillText(n, 28, 100 + i * 40); g.fillStyle = '#9aa1ab'; g.fillText(p, 400, 100 + i * 40); });
 });
-add(new THREE.PlaneGeometry(1.8, .9), new THREE.MeshBasicMaterial({ map: menuTex, toneMapped: false }), -1.1, 2.3, -2.44, shop);
+add(new THREE.PlaneGeometry(1.5, .75), new THREE.MeshBasicMaterial({ map: menuTex, toneMapped: false }), -1.9, 2.3, -2.44, shop);
 box(3.4, 1, .65, std(0x2a1d15, { roughness: .45 }), -.3, .5, -.7, shop);                // register counter
 box(3.5, .05, .75, std(0xeeeeea, { roughness: .3 }), -.3, 1.02, -.7, shop);
 box(1, .6, .6, std(0xcfe6f2, { transparent: true, opacity: .35, roughness: .05 }), 1.9, 1.35, -.7, shop);   // pastry case
@@ -621,22 +665,37 @@ const posTex = canvasTex(256, 176, (g, w, h) => {
   g.fillStyle = '#0d1b2a'; g.fillRect(0, 0, w, h); g.fillStyle = '#fff'; g.font = '700 30px Montserrat'; g.fillText('$4.75', 20, 52);
   g.fillStyle = '#46c265'; rr(g, 20, 80, w - 40, 60, 12); g.fillStyle = '#fff'; g.font = '600 22px Montserrat'; g.fillText('Tap, insert or swipe', 32, 118);
 });
+const posOkTex = canvasTex(256, 176, (g, w, h) => {
+  g.fillStyle = '#0f3d24'; g.fillRect(0, 0, w, h); g.strokeStyle = '#46c265'; g.lineWidth = 12; g.lineCap = 'round'; g.beginPath(); g.moveTo(92, 72); g.lineTo(118, 98); g.lineTo(166, 42); g.stroke();
+  g.fillStyle = '#fff'; g.font = '700 28px Montserrat'; g.textAlign = 'center'; g.fillText('Approved · $4.75', w / 2, 146);
+});
 const posM = std(0x222428, { roughness: .4 }), posScreen = new THREE.MeshBasicMaterial({ map: posTex, toneMapped: false });
+const payScreen = new THREE.MeshBasicMaterial({ map: posTex, toneMapped: false });   // the register the visitor pays at flips to "Approved"
+let payReader;
 for (const x of [-1.4, -.2]) {
   box(.3, .05, .22, posM, x, 1.07, -.6, shop);
-  const scr = add(new THREE.PlaneGeometry(.26, .18), posScreen, x, 1.2, -.62, shop); scr.rotation.x = -.35;
+  const scr = add(new THREE.PlaneGeometry(.26, .18), x === -.2 ? payScreen : posScreen, x, 1.2, -.62, shop); scr.rotation.x = -.35;
   box(.26, .19, .02, posM, x, 1.2, -.635, shop).rotation.x = -.35;
-  box(.08, .14, .05, posM, x + .24, 1.14, -.5, shop).rotation.x = -.5;                 // card reader facing the customer
+  const rd = box(.08, .14, .05, posM, x + .24, 1.14, -.5, shop); rd.rotation.x = -.5;       // card reader facing the customer
+  if (x === -.2) payReader = rd;
 }
-const secTex = canvasTex(512, 300, (g, w, h) => {
-  g.fillStyle = '#101114'; g.fillRect(0, 0, w, h); const tw = (w - 18) / 2, th = (h - 18) / 2;
-  [['REGISTER', 'lobby'], ['FRONT DOOR', 'door'], ['PARKING', 'lot'], ['BACK ROOM', 'hall']].forEach(([n, type], i) => {
-    const x = 6 + (i % 2) * (tw + 6), y = 6 + Math.floor(i / 2) * (th + 6); camScene(g, type, x, y, tw, th, 0, i);
-    g.fillStyle = 'rgba(0,0,0,.55)'; rr(g, x + 5, y + th - 24, 110, 19, 4); g.fillStyle = '#fff'; g.font = '600 12px Montserrat'; g.fillText(n, x + 12, y + th - 10);
+// camera monitor on the back wall, right behind the register: 2 outdoor cameras on top, 2 indoor below, live while the scene plays
+const secCanvas = document.createElement('canvas'); secCanvas.width = 768; secCanvas.height = 432;
+const secTex = new THREE.CanvasTexture(secCanvas); secTex.colorSpace = THREE.SRGBColorSpace;
+function drawSec(t) {
+  const g = secCanvas.getContext('2d'), w = 768, h = 432, top = 30, tw = (w - 18) / 2, th = (h - top - 18) / 2;
+  g.fillStyle = '#101114'; g.fillRect(0, 0, w, h); g.fillStyle = '#4aa3ff'; g.font = '700 16px Montserrat'; g.fillText('4 cameras · recording', 10, 21);
+  [['FRONT DOOR', 'door', 'OUTDOOR'], ['PARKING', 'lot', 'OUTDOOR'], ['REGISTER', 'lobby', 'INDOOR'], ['BACK ROOM', 'hall', 'INDOOR']].forEach(([n, type, where], i) => {
+    const x = 6 + (i % 2) * (tw + 6), y = top + 6 + Math.floor(i / 2) * (th + 6); camScene(g, type, x, y, tw, th, t, i);
+    g.font = '700 17px Montserrat'; g.fillStyle = 'rgba(0,0,0,.6)'; rr(g, x + 6, y + th - 32, g.measureText(n).width + 34, 26, 5);
+    g.fillStyle = '#fff'; g.fillText(n, x + 26, y + th - 13); g.fillStyle = '#e0453a'; g.beginPath(); g.arc(x + 16, y + th - 19, 4, 0, 7); g.fill();
+    g.font = '700 13px Montserrat'; g.fillStyle = where === 'OUTDOOR' ? '#f2c230' : '#5fb4ff'; rr(g, x + tw - 84, y + 8, 76, 22, 5); g.fillStyle = '#101114'; g.fillText(where, x + tw - 77, y + 24);
   });
-});
-box(1, .6, .05, posM, 1.5, 2.3, -2.42, shop);
-add(new THREE.PlaneGeometry(.94, .54), new THREE.MeshBasicMaterial({ map: secTex, toneMapped: false }), 1.5, 2.3, -2.39, shop);
+  secTex.needsUpdate = true;
+}
+drawSec(0);
+box(1.5, .9, .05, posM, .3, 2.25, -2.42, shop);
+add(new THREE.PlaneGeometry(1.44, .81), new THREE.MeshBasicMaterial({ map: secTex, toneMapped: false }), .3, 2.25, -2.39, shop);
 { const d = G('Dome'); d.position.set(.2, 3.09, -.2); shop.add(d); }                   // ceiling camera over the register
 const signTex = canvasTex(512, 128, (g, w, h) => { g.fillStyle = '#121016'; g.fillRect(0, 0, w, h); g.fillStyle = '#46c265'; g.font = '700 64px Audiowide, sans-serif'; g.textAlign = 'center'; g.fillText('COFFEE', w / 2, 88); });
 add(new THREE.PlaneGeometry(2.4, .6), new THREE.MeshBasicMaterial({ map: signTex, toneMapped: false }), 0, 2.75, 2.62, shop);
@@ -645,8 +704,8 @@ for (const x of [-1.6, 1.2]) {                                                  
   add(new THREE.CylinderGeometry(.35, .35, .04, 20), tblM, x, .42, 3.6, shop); add(new THREE.CylinderGeometry(.03, .03, .72, 8), tblM, x, .06, 3.6, shop);
   for (const s of [-1, 1]) { box(.4, .04, .4, tblM, x + s * .6, .15, 3.6, shop); box(.04, .45, .4, tblM, x + s * .8, .38, 3.6, shop); }
 }
-const shopTags = [label('Payment terminals', '#46c265'), label('Cameras on the register', '#4aa3ff')];
-shopTags[0].position.set(-.8, 1.75, -.3); shopTags[1].position.set(1.5, 2.95, -2.2); shopTags.forEach(s => shop.add(s));
+const shopTags = [label('Payment terminals', '#46c265'), label('Camera monitor · 2 outdoor, 2 indoor', '#4aa3ff')];
+shopTags[0].position.set(-.9, 1.9, -.3); shopTags[1].position.set(.3, 2.95, -2.2); shopTags.forEach(s => s.scale.set(.75, .15, 1)); shopTags.forEach(s => shop.add(s));
 drawCams(0);
 
 const installOrder = [...devices].sort((a, b) => b.u - a.u);   // top-down
@@ -812,26 +871,53 @@ const reader = new THREE.Group(); reader.position.set(6.575, 1.25, 5.35); floor.
 box(.016, .15, .065, white, 0, 0, 0, reader);
 const ringM = new THREE.MeshBasicMaterial({ color: 0x9fd4ff });
 const ring = add(new THREE.TorusGeometry(.019, .0035, 8, 32), ringM, .009, -.02, 0, reader); ring.rotation.y = Math.PI / 2;
-add(new THREE.CircleGeometry(.006, 16), std(0x0b0b0e, { roughness: .1 }), .0085, .05, 0, reader).rotation.y = Math.PI / 2;   // face-ID camera
+const faceCamM = new THREE.MeshBasicMaterial({ color: 0x0b0b0e });
+add(new THREE.CircleGeometry(.006, 16), faceCamM, .0085, .05, 0, reader).rotation.y = Math.PI / 2;   // face-ID camera
+const faceHalo = add(new THREE.RingGeometry(.009, .014, 24), glowMat(0x9fd4ff), .0087, .05, 0, reader); faceHalo.rotation.y = Math.PI / 2;
+const faceScan = new THREE.Object3D(); faceScan.position.set(.009, .05, 0); faceScan.rotation.z = Math.PI / 2 + .6; reader.add(faceScan);   // aimed up at a standing face
+const faceCone = viewCone(faceScan, .75, .13, 0x9fd4ff, []);
 const accessTag = tag('Access granted', '#46c265', 6.62, 1.62, 5.35); tags.splice(tags.indexOf(accessTag), 1); accessTag.scale.set(.62, .124, 1);
 box(.035, .13, .03, steel, 6.5, 1.05, 4.97, floor);                                                   // electric strike
 box(.012, .09, .07, white, 6.43, 1.15, 5.3, floor); add(new THREE.CylinderGeometry(.02, .02, .01, 16), std(0x1f9c3a), 6.42, 1.15, 5.3, floor).rotation.z = Math.PI / 2;   // exit button
 box(.05, .04, .13, white, 6.43, 2.25, 4.5, floor);                                                    // motion exit sensor
 const doorTags = [tag('Electric strike', '#46c265', 6.75, .85, 4.95), tag('Exit button', '#46c265', 6.2, 1.38, 5.3), tag('Motion exit sensor', '#46c265', 6.3, 2.45, 4.5)];
 doorTags.forEach(t => { tags.splice(tags.indexOf(t), 1); t.scale.set(.5, .1, 1); });
-box(.05, 2.3, 1.5, std(0xb9bec6, { metalness: .85, roughness: .25 }), 11.93, 1.15, 6.4, floor);                      // elevator doors
-box(.06, .02, 1.5, std(0x2a2b30), 11.9, 1.15, 6.4, floor); box(.02, .12, .07, white, 11.94, 1.2, 5.45, floor);
+// elevator: a glass cab rides the outside of the tower (x > 12) from the street lobby up to the suite floor
+const liftM = std(0xb9bec6, { metalness: .85, roughness: .25 }), liftHeadM = std(0x2a2b30);
+function liftDoors(parent, y) {                           // two sliding leaves; returns a setter for how open they are (0..1)
+  const leaves = [-1, 1].map(s => box(.05, 2.3, .75, liftM, 11.95, y + 1.15, 6.4 + s * .375, parent));
+  box(.08, .1, 1.7, liftHeadM, 11.95, y + 2.35, 6.4, parent); box(.02, .12, .07, white, 11.9, y + 1.2, 5.45, parent);   // header, call button
+  return o => leaves.forEach((l, i) => { l.position.z = 6.4 + (i ? 1 : -1) * (.375 + o * .7); });
+}
+const lift0 = liftDoors(floor, 0), liftG = liftDoors(exterior, G0);
+const cab = new THREE.Group(); cab.position.set(12.9, G0, 6.4); exterior.add(cab);
+for (const y of [.04, 2.46]) box(1.3, .08, 1.7, slabM, 0, y, 0, cab);
+box(.03, 2.38, 1.66, glassM, .64, 1.25, 0, cab); for (const s of [-1, 1]) box(1.26, 2.38, .03, glassM, 0, 1.25, s * .835, cab);
+for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(.05, 2.5, .05, frameM, sx * .63, 1.25, sz * .83, cab);
+for (const z of [5.4, 7.4]) box(.1, 31, .1, frameM, 13.6, G0 + 15.5, z, exterior);          // guide rails up the facade
+box(1.8, .3, 2.3, slabM, 12.95, G0 - .15, 6.4, exterior);                                  // landing pad at street level
 
-// the visitor: a standing figure holding a phone (faces +z locally)
-const visitor = new THREE.Group(); floor.add(visitor);
-const vSkin = std(0xe0b89a, { roughness: .7 }), vShirt = std(0x2a9d8f, { roughness: .8 }), vPants = std(0x2c2f3a, { roughness: .8 });
-add(new THREE.CapsuleGeometry(.17, .42, 4, 12), vShirt, 0, 1.2, 0, visitor);
-add(new THREE.SphereGeometry(.11, 16, 12), vSkin, 0, 1.72, 0, visitor);
-add(new THREE.SphereGeometry(.118, 16, 10, 0, Math.PI * 2, 0, 1.4), std(0x2b1d14, { roughness: .9 }), 0, 1.75, -.01, visitor);
-const hips = [-1, 1].map(sx => { const h = new THREE.Group(); h.position.set(sx * .09, .92, 0); visitor.add(h);
-  add(new THREE.CapsuleGeometry(.07, .62, 4, 10), vPants, 0, -.42, 0, h); box(.1, .06, .2, black, 0, -.83, .04, h); return h; });
-const leftArm = new THREE.Group(); leftArm.position.set(-.23, 1.48, 0); visitor.add(leftArm);
-add(new THREE.CapsuleGeometry(.05, .5, 4, 8), vShirt, 0, -.3, 0, leftArm);
+// standing figures (the visitor, a colleague, baristas): legs on hip pivots, arms on shoulder pivots, facing +z locally
+const vSkin = std(0xe0b89a, { roughness: .7 }), vPants = std(0x2c2f3a, { roughness: .8 });
+function figure(parent, shirt, skin = vSkin, hair = 0x2b1d14, rightArm = true) {
+  const g = new THREE.Group(); parent.add(g); const sh = std(shirt, { roughness: .8 });
+  add(new THREE.CapsuleGeometry(.17, .42, 4, 12), sh, 0, 1.2, 0, g);
+  add(new THREE.SphereGeometry(.11, 16, 12), skin, 0, 1.72, 0, g);
+  add(new THREE.SphereGeometry(.118, 16, 10, 0, Math.PI * 2, 0, 1.4), std(hair, { roughness: .9 }), 0, 1.75, -.01, g);
+  const hips = [-1, 1].map(sx => { const h = new THREE.Group(); h.position.set(sx * .09, .92, 0); g.add(h);
+    add(new THREE.CapsuleGeometry(.07, .62, 4, 10), vPants, 0, -.42, 0, h); box(.1, .06, .2, black, 0, -.83, .04, h); return h; });
+  const arms = (rightArm ? [-1, 1] : [-1]).map(sx => { const a = new THREE.Group(); a.position.set(sx * .23, 1.48, 0); g.add(a); add(new THREE.CapsuleGeometry(.05, .5, 4, 8), sh, 0, -.3, 0, a); return a; });
+  return { g, hips, arms, sh };
+}
+function stride(f, dist, moving) { const ph = dist * 5.5; f.hips.forEach((h, k) => { h.rotation.x = moving * Math.sin(ph + k * Math.PI) * .45; }); f.arms.forEach((a, k) => { a.rotation.x = moving * Math.sin(ph + k * Math.PI) * .35; }); }
+// the visitor: holds a phone in the right hand (its arm stretches to wherever the phone goes)
+const vis = figure(floor, 0x2a9d8f, vSkin, 0x2b1d14, false), visitor = vis.g, leftArm = vis.arms[0], vShirt = vis.sh; visitor.visible = false;
+const cup = new THREE.Group(); cup.position.set(0, -.63, .05); leftArm.add(cup); cup.visible = false;                  // coffee to go
+add(new THREE.CylinderGeometry(.036, .028, .11, 14), std(0xf4f1ea, { roughness: .5 }), 0, 0, 0, cup); add(new THREE.CylinderGeometry(.038, .038, .016, 14), std(0x4a3426), 0, .062, 0, cup);
+const colleague = figure(floor, 0x7a2e3a, std(0x8d5a3b, { roughness: .7 }), 0x111111); colleague.g.visible = false;   // goes through the door just ahead, by face ID
+const baristas = [figure(shop, 0x1f5c45, std(0xc68c6a, { roughness: .7 }), 0x6b3d1f), figure(shop, 0x1f5c45, std(0xf1c7a5, { roughness: .7 }), 0xd9b36a)];
+baristas[0].g.position.set(-.2, 0, -1.45);                                     // at the register the visitor pays at
+baristas[1].g.position.set(.9, 0, -1.8); baristas[1].g.rotation.y = .5;       // working the espresso side
 const armGeo = new THREE.CapsuleGeometry(.05, .5, 4, 8), armLen0 = .6, rightArm = add(armGeo, vShirt, 0, 0, 0, visitor);
 const phoneCanvas = document.createElement('canvas'); phoneCanvas.width = 128; phoneCanvas.height = 256;
 const phoneTex = new THREE.CanvasTexture(phoneCanvas); phoneTex.colorSpace = THREE.SRGBColorSpace;
@@ -842,10 +928,11 @@ let phoneState = '';
 function drawPhone(state, ap) {
   const key = state + ap; if (key === phoneState) return; phoneState = key;
   const g = phoneCanvas.getContext('2d'), W = 128, H = 256;
-  g.fillStyle = state === 'granted' ? '#0f3d24' : '#0d1220'; g.fillRect(0, 0, W, H);
+  const ok = state === 'granted' || state === 'paid';
+  g.fillStyle = ok ? '#0f3d24' : '#0d1220'; g.fillRect(0, 0, W, H);
   g.textAlign = 'center'; g.fillStyle = '#fff';
-  if (state === 'lock' || state === 'tap') { g.font = '700 30px Montserrat'; g.fillText('9:41', W / 2, 60); g.font = '600 13px Montserrat'; g.fillStyle = '#9fd4ff'; g.fillText(state === 'tap' ? 'Reading…' : 'Tap to unlock', W / 2, 200); g.strokeStyle = '#9fd4ff'; g.lineWidth = 4; g.beginPath(); g.arc(W / 2, 130, 26, 0, 7); g.stroke(); }
-  else if (state === 'granted') { g.strokeStyle = '#46c265'; g.lineWidth = 10; g.beginPath(); g.moveTo(34, 128); g.lineTo(56, 152); g.lineTo(96, 100); g.stroke(); g.font = '700 15px Montserrat'; g.fillStyle = '#fff'; g.fillText('Door unlocked', W / 2, 200); }
+  if (state === 'lock' || state === 'tap' || state === 'pay') { g.font = '700 30px Montserrat'; g.fillText(state === 'pay' ? '$4.75' : '9:41', W / 2, 60); g.font = '600 13px Montserrat'; g.fillStyle = '#9fd4ff'; g.fillText(state === 'pay' ? 'Tap to pay' : state === 'tap' ? 'Reading…' : 'Tap to unlock', W / 2, 200); g.strokeStyle = '#9fd4ff'; g.lineWidth = 4; g.beginPath(); g.arc(W / 2, 130, 26, 0, 7); g.stroke(); }
+  else if (ok) { g.strokeStyle = '#46c265'; g.lineWidth = 10; g.beginPath(); g.moveTo(34, 128); g.lineTo(56, 152); g.lineTo(96, 100); g.stroke(); g.font = '700 15px Montserrat'; g.fillStyle = '#fff'; g.fillText(state === 'paid' ? 'Paid · $4.75' : 'Door unlocked', W / 2, 200); }
   else { for (let k = 0; k < 3; k++) { g.strokeStyle = '#5fb4ff'; g.lineWidth = 7; g.beginPath(); g.arc(W / 2, 140, 18 + k * 17, -2.4, -.74); g.stroke(); } g.fillStyle = '#5fb4ff'; g.beginPath(); g.arc(W / 2, 140, 6, 0, 7); g.fill();
     g.fillStyle = '#fff'; g.font = '700 14px Montserrat'; g.fillText('CorTek-Staff', W / 2, 185); g.font = '600 12px Montserrat'; g.fillStyle = '#46c265'; g.fillText(state === 'roam' ? `Roaming · AP ${ap}` : 'Connected', W / 2, 206); }
   g.textAlign = 'left'; phoneTex.needsUpdate = true;
@@ -864,23 +951,36 @@ function along(path, t) {
   const a = path[i], b = path[i + 1], f = segs[i] ? d / segs[i] : 0;
   return { x: a[0] + (b[0] - a[0]) * f, z: a[1] + (b[1] - a[1]) * f, dir: Math.atan2(b[0] - a[0], b[1] - a[1]), dist: clamp01(t) * total };
 }
+// lobby scene: out of the car, into the coffee shop, pay at the register, then the glass elevator up to the suite
+const toShop = [[2.35, 16.65], [-1.8, 12.0], [-3.6, 8.7], [-3.75, 5.6]], toLift = [[-3.75, 5.6], [-3.6, 8.7], [-.7, 8.9], [-.7, 7.4], [11.3, 6.4]];
+const intoCab = [[11.3, 6.4], [12.9, 6.4]], outOfCab = [[12.9, 6.4], [11.4, 6.5], [10.6, 6.6]];
+const groundY = z => G0 - .3 * clamp01((z - 11.3) / .4);       // sidewalk + lobby level, stepping down to the parking lot
 const phoneRest = V(.14, 1.2, .3), tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3(), shoulderR = V(.23, 1.48, 0);
-function updateVisitor(p, q, access, time) {
-  let pos, moving = 0, tap = 0, state = 'lock', showBeam = false, beamStrength = 0;
-  if (access || p <= ACC_A + 1e-6) {
+function updateVisitor(p, q, access, sq, time) {
+  let pos, y = 0, moving = 0, tap = 0, state = 'lock', showBeam = false, tagText = '';
+  const pay = sq >= 0;
+  if (pay) {
+    if (sq < .1) pos = along(toShop, 0);
+    else if (sq < .3) { pos = along(toShop, seg(sq, .1, .3)); moving = 1; }
+    else if (sq < .52) { pos = along(toShop, 1); pos.dir = Math.PI; tap = sm(seg(sq, .35, .39)) * (1 - sm(seg(sq, .42, .46))); state = sq < .32 ? 'lock' : sq < .39 ? 'pay' : 'paid'; }
+    else if (sq < .66) { pos = along(toLift, seg(sq, .52, .66)); moving = 1; }
+    else if (sq < .68) pos = along(toLift, 1);
+    else if (sq < .9) { pos = along(intoCab, seg(sq, .68, .71)); moving = sq < .71 ? 1 : 0; if (sq >= .71) pos.dir = -Math.PI / 2; }
+    else { pos = along(outOfCab, seg(sq, .9, .97)); moving = sq < .97 ? 1 : 0; }
+    y = sq < .72 ? groundY(pos.z) : cab.position.y;
+    if (sq > .74 && sq < .87) tagText = 'Glass elevator · up to the suite';
+  } else if (access || p <= ACC_A + 1e-6) {
     if (q < .35) { pos = along(entryPath, q / .35); moving = 1; }
     else if (q < .58) { pos = along(entryPath, 1); pos.dir = -Math.PI / 2; tap = sm(seg(q, .36, .44)) * (1 - sm(seg(q, .5, .58))); state = q < .44 ? 'lock' : q < .47 ? 'tap' : 'granted'; }
     else { pos = along(throughPath, seg(q, .6, 1)); moving = q < 1 ? 1 : 0; state = q > .8 ? 'wifi' : 'granted'; showBeam = q > .8; }
   } else if (p < .355) { pos = along(throughPath, 1); state = 'wifi'; showBeam = p > .3; }
   else { const u = seg(p, .355, .47); pos = along(roamPath, u); moving = u > 0 && u < 1 ? 1 : 0; state = 'roam'; showBeam = true; }
-  visitor.position.set(pos.x, 0, pos.z); visitor.rotation.y = pos.dir;
-  const phase = pos.dist * 5.5;
-  hips.forEach((h, k) => { h.rotation.x = moving * Math.sin(phase + k * Math.PI) * .45; });
-  leftArm.rotation.x = moving * Math.sin(phase) * .35;
+  visitor.position.set(pos.x, y, pos.z); visitor.rotation.y = pos.dir;
+  stride(vis, pos.dist, moving);
   // phone: rests in front of the chest, or reaches out to the reader
   visitor.updateMatrixWorld(true);
-  const readerLocal = visitor.worldToLocal(reader.getWorldPosition(tmpA).add(V(.05, 0, 0)));
-  phone.position.lerpVectors(phoneRest, readerLocal, tap); phone.rotation.set(-1.0 + tap * 1.0, tap * -1.4, 0);
+  const readerLocal = visitor.worldToLocal(pay ? payReader.getWorldPosition(tmpA).add(V(0, .03, .08)) : reader.getWorldPosition(tmpA).add(V(.05, 0, 0)));
+  phone.position.lerpVectors(phoneRest, readerLocal, tap); phone.rotation.set(-1.0 + tap * (pay ? .6 : 1.0), pay ? 0 : tap * -1.4, 0);
   rightArm.position.copy(shoulderR).add(phone.position).multiplyScalar(.5);
   tmpB.copy(phone.position).sub(shoulderR); rightArm.quaternion.setFromUnitVectors(V(0, 1, 0), tmpB.clone().normalize()); rightArm.scale.set(1, tmpB.length() / armLen0, 1);
   // reader ring + door
@@ -895,15 +995,15 @@ function updateVisitor(p, q, access, time) {
   const apW = aps[best].getWorldPosition(tmpB).add(V(0, -.04, 0));
   beam.visible = showBeam && granted;
   if (beam.visible) { beam.position.copy(ph).add(apW).multiplyScalar(.5); beam.lookAt(apW); beam.scale.set(1, 1, ph.distanceTo(apW)); beam.material.opacity = .55 + .3 * Math.sin(time * 6); }
-  const tagText = state === 'roam' ? `Roaming → AP ${best + 1}` : state === 'wifi' ? 'Auto-joined Wi-Fi' : '';
-  visTag.visible = !!tagText && (access ? q > .8 : p > .3 && p < .48);
-  if (visTag.visible) { visLabel(tagText, '#5fb4ff'); visTag.position.set(pos.x, 2.15, pos.z); }
+  if (!pay) tagText = state === 'roam' ? `Roaming → AP ${best + 1}` : state === 'wifi' ? 'Auto-joined Wi-Fi' : '';
+  visTag.visible = !!tagText && (pay || (access ? q > .8 : p > .3 && p < .48));
+  if (visTag.visible) { visLabel(tagText, '#5fb4ff'); visTag.position.set(pos.x, y + (pay ? 2.95 : 2.15), pos.z); }
 }
 
 // ---------- scroll → story ----------
-const GATE_A = .08, GATE_L = .12, ACC_A = .1, ACC_L = .135, COM_A = .15, COM_L = .15, IDF_A = .895, IDF_L = .1, DASH_A = .935, DASH_L = .1;
+const GATE_A = .08, GATE_L = .12, SHOP_A = .09, SHOP_L = .19, ACC_A = .1, ACC_L = .19, FACE_Q = .3, COM_A = .15, COM_L = .15, IDF_A = .895, IDF_L = .1, DASH_A = .935, DASH_L = .1;
 // inserted scenes: the story pauses at time `at` while that scene plays over its own stretch of scroll
-const INSERTS = [[GATE_A, GATE_L], [ACC_A, ACC_L], [COM_A, COM_L], [IDF_A, IDF_L], [DASH_A, DASH_L]], EXTRA = INSERTS.reduce((a, [, l]) => a + l, 0);
+const INSERTS = [[GATE_A, GATE_L], [SHOP_A, SHOP_L], [ACC_A, ACC_L], [COM_A, COM_L], [IDF_A, IDF_L], [DASH_A, DASH_L]], EXTRA = INSERTS.reduce((a, [, l]) => a + l, 0);
 function storyAt(r) {
   let rs = r * (1 + EXTRA), shift = 0;
   for (let i = 0; i < INSERTS.length; i++) {
@@ -939,10 +1039,33 @@ function poseAt(p, ks = keys) {
   return [a0.map((v, k) => v + (a1[k] - v) * t), l0.map((v, k) => v + (l1[k] - v) * t)];
 }
 function cameraAt(p, ks) { const [a, l] = poseAt(p, ks); camera.position.set(...a); camera.lookAt(...l); }
-// the access-control scene is its own stretch of scroll inserted at story time ACC_A (the story waits while it plays)
+// the access-control scene is its own stretch of scroll inserted at story time ACC_A (the story waits while it plays).
+// Its first FACE_Q of scroll is a colleague going in by face ID; the visitor's phone tap then plays over the rest.
 const [accPos, accLook] = poseAt(ACC_A);
-const accessKeys = [[0, accPos, accLook], [.12, [13.6, 1.9, 8.8], [9.0, 1.1, 5.5]], [.4, [7.35, 1.75, 8.6], [6.75, 1.25, 5.3]],
-  [.6, [7.7, 1.7, 8.0], [6.3, 1.1, 4.6]], [.86, [7.9, 1.8, 6.8], [3.8, 1.1, 3.9]], [1, accPos, accLook]];
+const accessKeys = [[0, accPos, accLook], [.1, [7.9, 1.8, 3.0], [6.85, 1.45, 5.3]], [.2, [7.9, 1.8, 3.0], [6.85, 1.45, 5.3]], [.3, [12.2, 1.85, 8.9], [8.8, 1.15, 5.6]],
+  [.58, [7.35, 1.75, 8.6], [6.75, 1.25, 5.3]], [.72, [7.7, 1.7, 8.0], [6.3, 1.1, 4.6]], [.9, [7.9, 1.8, 6.8], [3.8, 1.1, 3.9]], [1, accPos, accLook]];
+const faceIn = [[9.4, 7.7], [7.2, 5.25]], faceOut = [[7.2, 5.25], [6.9, 4.5], [5.6, 4.5], [3.2, 3.3]];
+const faceTags = [[tag('One reader · face, badge or phone', '#5fb4ff', 6.62, 1.62, 5.35), .03, .14], [tag('Face ID · access granted', '#46c265', 6.62, 1.62, 5.35), .15, .27]];
+faceTags.forEach(([t]) => { tags.splice(tags.indexOf(t), 1); t.scale.set(.62, .124, 1); });
+function updateFace(access, rq, time) {
+  const on = access && rq < .45; colleague.g.visible = on;
+  let scan = 0;
+  if (on) {
+    let pos, moving = 1;
+    if (rq < .1) pos = along(faceIn, rq / .1);
+    else if (rq < .19) { pos = along(faceIn, 1); pos.dir = -Math.PI / 2; moving = 0; }     // looks at the reader
+    else pos = along(faceOut, seg(rq, .19, .45));
+    colleague.g.position.set(pos.x, 0, pos.z); colleague.g.rotation.y = pos.dir; stride(colleague, pos.dist, moving);
+    scan = sm(seg(rq, .1, .12)) * (1 - sm(seg(rq, .165, .19)));
+  }
+  faceCone.visible = scan > .01; faceCone.material.opacity = scan * (.22 + .08 * Math.sin(time * 14));
+  faceHalo.material.opacity = scan * .9; faceCamM.color.setHex(scan > .01 ? 0x9fd4ff : 0x0b0b0e);
+  if (access && rq < FACE_Q) {                             // this stretch owns the door + reader ring (the visitor's own beat takes over after)
+    doorLeaf.position.z = 4.5 + .98 * sm(seg(rq, .17, .2)) * (1 - sm(seg(rq, .26, .29)));
+    ringM.color.setHex(rq < .1 ? 0x9fd4ff : rq < .165 ? (Math.sin(time * 30) > 0 ? 0x5fb4ff : 0xffffff) : 0x46c265);
+  }
+  for (const [t, a, b] of faceTags) { const o = access ? Math.min(sm(seg(rq, a, a + .02)), 1 - sm(seg(rq, b - .02, b))) : 0; t.material.opacity = o; t.visible = o > .01; }
+}
 const [comPos, comLook] = poseAt(COM_A);
 const commKeys = [[0, comPos, comLook], [.12, [-7.0, 1.85, -4.5], [-7.0, .95, -7.6]], [.3, [-8.1, 1.6, -5.7], [-8.75, .95, -7.4]],
   [.52, [-6.2, 1.55, -6.0], [-7.0, 1.1, -7.55]], [.72, [-4.9, 1.45, -5.5], [-5.2, 1.15, -6.9]], [.9, [-3.7, 1.45, -5.65], [-3.45, .85, -7.4]], [1, comPos, comLook]];
@@ -985,7 +1108,7 @@ function drawIntercom(code, ok) {
 drawIntercom(0, false);
 const car = new THREE.Group(); gateG.add(car);
 car.add(G('Car'));                                                              // Blender-modeled sedan
-add(new THREE.SphereGeometry(.12, 12, 10), vSkin, -.4, 1.12, .25, car);         // the driver
+const driver = add(new THREE.SphereGeometry(.12, 12, 10), vSkin, -.4, 1.12, .25, car);   // the driver (steps out as the visitor in the lobby scene)
 // PTZ on a pole by the building, and the view it streams (drawn as a picture-in-picture)
 add(new THREE.CylinderGeometry(.08, .1, 4.8), fenceM, -3, GY + 2.4, 22.5, gateG);
 box(.5, .06, .06, fenceM, -2.75, GY + 4.75, 22.5, gateG);
@@ -999,10 +1122,10 @@ gateTags.forEach(([t]) => { tags.splice(tags.indexOf(t), 1); t.scale.set(1.3, .2
 const gateKeys = [[0, ...poseAt(GATE_A)], [.15, [16, GY + 7, 44], [4, GY + 1, 27]], [.35, [5.6, GY + 2.1, 31.2], [2.4, GY + 1.3, 28.3]],
   [.62, [9.5, GY + 3.2, 34], [2, GY + 1.5, 25]], [.85, [11, GY + 4, 37], [2, GY + 1, 22]], [1, ...poseAt(GATE_A)]];
 const ptzHud = document.getElementById('ptzHud'), tgt = new THREE.Vector3();
-function updateGate(gq, time) {
+function updateGate(gq, p, time) {
   const on = gq >= 0;
   const arrive = sm(seg(gq, .1, .32)), leave = sm(seg(gq, .66, .92));
-  car.position.set(3.5, GY, 40 - arrive * 11.6 - leave * 12);
+  car.position.set(3.5, GY, !on && p > GATE_A ? 16.4 : 40 - arrive * 11.6 - leave * 12);   // stays parked once it's through
   const digits = Math.floor(seg(gq, .36, .48) * 5), ok = gq >= .49; drawIntercom(Math.min(digits, 4), ok);
   slideGate.position.x = 3.5 - 6 * sm(seg(gq, .52, .66));
   for (const [t, a, b] of gateTags) { const o = on ? Math.min(sm(seg(gq, a, a + .04)), 1 - sm(seg(gq, b - .04, b))) : 0; t.material.opacity = o; t.visible = o > .01; }
@@ -1015,6 +1138,31 @@ function updateGate(gq, time) {
   ptzHud.querySelector('span').textContent = `PTZ CAM 01 · ${Math.round(55 / ptzCam.fov)}x`;
   const gp = document.getElementById('gatePanel'), o = on ? Math.min(clamp01(gq / .05), clamp01((1 - gq) / .05)) : 0; gp.style.opacity = o;
   return ho;
+}
+// ---------- lobby scene: park, coffee (barista rings it up, tap to pay), glass elevator up to the suite ----------
+const shopKeys = [[0, ...poseAt(SHOP_A)], [.07, [9.5, GY + 3.4, 22.5], [2.5, GY + 1, 15.5]], [.2, [1.5, G0 + 2.4, 13.5], [-3.2, G0 + 1, 7.5]],
+  [.3, [-1.25, G0 + 2.1, 7.7], [-4.6, G0 + 1.4, 4.2]],                       // wide on the counter: barista, registers, camera monitor
+  [.4, [-2.2, G0 + 1.8, 6.4], [-4.2, G0 + 1.2, 4.5]],                      // the tap at the card reader
+  [.5, [-2.8, G0 + 1.75, 5.6], [-3.75, G0 + 2.1, 3.0]],                      // up to the camera monitor behind the barista
+  [.6, [4.5, G0 + 2.2, 12.5], [2, G0 + 1, 7.5]], [.67, [8, G0 + 1.8, 9.8], [11.6, G0 + 1.2, 6.4]],
+  [.74, [19, G0 + 1.9, 11.2], [12.9, G0 + 1.2, 6.4]], [.87, [19, 1.9, 11.2], [12.9, 1.2, 6.4]],   // rides up with the cab (same easing as the cab)
+  [.95, [8.4, 1.75, 7.7], [11.4, 1.1, 6.2]], [1, ...poseAt(SHOP_A)]];
+let lastSec = -1;
+function updateShop(sq, p, time) {
+  const on = sq >= 0, out = p > SHOP_A || sq >= .08;
+  driver.visible = !out; visitor.visible = out; cup.visible = out && (!on || sq >= .44);
+  cab.position.y = on ? G0 - G0 * sm(seg(sq, .74, .87)) : p > SHOP_A ? 0 : G0;
+  liftG(on ? sm(seg(sq, .65, .68)) * (1 - sm(seg(sq, .71, .74))) : 0);
+  lift0(on ? sm(seg(sq, .87, .9)) * (1 - sm(seg(sq, .97, 1))) : 0);
+  const eo = on ? sm(clamp01((2.4 - Math.hypot(visitor.position.x, visitor.position.z - 8.04)) / 1.2)) : 0;   // lobby doors slide open as the visitor nears
+  entryDoors.forEach((d, i) => { d.position.x = (i ? 1 : -1) * (.7 + eo * 1.3); });
+  payScreen.map = on && sq >= .39 ? posOkTex : posTex;
+  const ring = on ? sm(seg(sq, .3, .33)) * (1 - sm(seg(sq, .35, .38))) : 0;   // barista rings it up on the register
+  baristas[0].arms[1].rotation.x = -1.0 * ring; baristas[0].arms[0].rotation.x = -.5 * ring;
+  baristas[1].arms[1].rotation.x = on ? -.7 + Math.sin(time * 3) * .15 : -.7;
+  if (on && sq > .25 && sq < .6 && time - lastSec > .25) { drawSec(time); lastSec = time; }
+  for (const [t, a, b] of [[shopTags[0], .3, .46], [shopTags[1], .44, .56]]) { const o = on ? Math.min(sm(seg(sq, a, a + .03)), 1 - sm(seg(sq, b - .03, b))) : 0; t.material.opacity = o; t.visible = o > .01; }
+  const sp = document.getElementById('shopPanel'), o = on ? Math.min(clamp01(sq / .05), clamp01((1 - sq) / .05)) : 0; sp.style.opacity = o;
 }
 // ---------- manager dashboard on the conference-room TV ----------
 const dashCanvas = document.createElement('canvas'); dashCanvas.width = 1024; dashCanvas.height = 578;
@@ -1049,7 +1197,7 @@ function drawDash(tab, t, typed) {
 const dashKeys = [[0, ...poseAt(DASH_A)], [.22, [2.55, 1.6, -5.05], [2.3, 1.45, -7.9]], [.85, [2.45, 1.52, -5.35], [2.3, 1.45, -7.9]], [1, ...poseAt(DASH_A)]];
 let lastDash = -1;
 function updateDash(dq, time) {
-  const on = dq >= 0; tvScreen.material.map = on ? dashTex : logoImg; cablesG.visible = !on;
+  const on = dq >= 0; tvScreen.material.map = on ? dashTex : tvLogo; cablesG.visible = !on;
   if (on && time - lastDash > .2) { lastDash = time; const tab = dq < .42 ? 'Access' : dq < .66 ? 'Cameras' : 'Phones'; if (tab === 'Cameras') drawCams(time); drawDash(tab, time, seg(dq, .12, .36)); }
   const dp = document.getElementById('dashPanel'), o = on ? Math.min(clamp01(dq / .05), clamp01((1 - dq) / .05)) : 0; dp.style.opacity = o;
 }
@@ -1068,10 +1216,10 @@ let lastCam = -1;
 renderer.setAnimationLoop(() => {
   const dt = Math.min(clock.getDelta(), .05), time = clock.elapsedTime;
   pS += (target - pS) * Math.min(1, dt * 6);          // smooth, like scrubbing
-  const sa = storyAt(pS), p = sa.p, access = sa.at === ACC_A, q = access ? sa.q : 0, cq = sa.at === COM_A ? sa.q : -1, iq = sa.at === IDF_A ? sa.q : -1, gq = sa.at === GATE_A ? sa.q : -1, dq = sa.at === DASH_A ? sa.q : -1;
-  if (access) cameraAt(q, accessKeys); else if (cq >= 0) cameraAt(cq, commKeys); else if (iq >= 0) cameraAt(iq, idfKeys); else if (gq >= 0) cameraAt(gq, gateKeys); else if (dq >= 0) cameraAt(dq, dashKeys); else cameraAt(p);
-  const ptzOn = updateGate(gq, time); updateDash(dq, time);
-  updateVisitor(p, q, access, time);
+  const sa = storyAt(pS), p = sa.p, access = sa.at === ACC_A, rq = access ? sa.q : 0, q = access ? seg(rq, FACE_Q, 1) : 0, sq = sa.at === SHOP_A ? sa.q : -1, cq = sa.at === COM_A ? sa.q : -1, iq = sa.at === IDF_A ? sa.q : -1, gq = sa.at === GATE_A ? sa.q : -1, dq = sa.at === DASH_A ? sa.q : -1;
+  if (access) cameraAt(rq, accessKeys); else if (sq >= 0) cameraAt(sq, shopKeys); else if (cq >= 0) cameraAt(cq, commKeys); else if (iq >= 0) cameraAt(iq, idfKeys); else if (gq >= 0) cameraAt(gq, gateKeys); else if (dq >= 0) cameraAt(dq, dashKeys); else cameraAt(p);
+  const ptzOn = updateGate(gq, p, time); updateDash(dq, time);
+  updateShop(sq, p, time); updateVisitor(p, q, access, sq, time); updateFace(access, rq, time);
 
   const inside = p > .1 && p < .93;
   exterior.visible = !inside || p < .13 || p > .935;
@@ -1134,9 +1282,8 @@ renderer.setAnimationLoop(() => {
   updateIDF(p, iq, time);   // after the generic panel pass so its own panel isn't reset
   updateComm(cq, p, time);
   const mo = sm(seg(p, .5, .52)) * (1 - sm(seg(p, .57, .59))); for (const t of mdfTags) { t.material.opacity = mo; t.visible = mo > .01; }
-  const so = gq >= 0 ? sm(seg(gq, .68, .76)) : 0; for (const t of shopTags) { t.material.opacity = so; t.visible = so > .01; }
   const dro = access ? sm(seg(q, .62, .68)) * (1 - sm(seg(q, .9, .96))) : 0; for (const t of doorTags) { t.material.opacity = dro; t.visible = dro > .01; }
-  const ap = document.getElementById('accessPanel'), ao = access ? Math.min(clamp01(q / .06), clamp01((1 - q) / .06)) : 0; ap.style.opacity = ao; ap.style.pointerEvents = ao > .5 ? 'auto' : 'none';
+  const ap = document.getElementById('accessPanel'), ao = access ? Math.min(clamp01(rq / .04), clamp01((1 - rq) / .04)) : 0; ap.style.opacity = ao; ap.style.pointerEvents = ao > .5 ? 'auto' : 'none';
   let cur = -1; steps.forEach((s, i) => { if (p >= +s.dataset.a) cur = i; }); steps.forEach((s, i) => s.classList.toggle('on', i === cur));
   if (cur !== lastStep && cur >= 0) { lastStep = cur; const el = steps[cur], nav = el.parentNode; nav.scrollTo({ left: el.offsetLeft - nav.clientWidth / 2 + el.offsetWidth / 2, behavior: 'smooth' }); }   // keep the active chip centered on phones
 
