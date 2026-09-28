@@ -1107,7 +1107,31 @@ function drawIntercom(code, ok) {
 }
 drawIntercom(0, false);
 const car = new THREE.Group(); gateG.add(car);
-car.add(G('Car'));                                                              // Blender-modeled sedan
+{ // procedural sedan, nose toward -z: extruded side profile with wheel arches, an inset tinted greenhouse, dark trim, lit lamps
+  const paint = std(0x2d5a8c, { metalness: .55, roughness: .22 }), trim = std(0x16171b, { roughness: .6 }), tint = std(0x0c141c, { transparent: true, opacity: .62, roughness: .05, metalness: .7 });
+  const extrude = (pts, w, bev, arches = []) => {                               // profile drawn in (x = forward, y = up), extruded across the car's width
+    const s = new THREE.Shape(); s.moveTo(...pts[0]);
+    for (const ax of arches) { s.lineTo(ax - .46, .3); s.absarc(ax, .33, .46, Math.PI, 0, true); }
+    pts.slice(1).forEach(p => s.lineTo(...p));
+    const geo = new THREE.ExtrudeGeometry(s, { depth: w - 2 * bev, bevelThickness: bev, bevelSize: bev, bevelSegments: 3, curveSegments: 10 });
+    geo.translate(0, 0, -(w - 2 * bev) / 2); geo.rotateY(Math.PI / 2); return geo;
+  };
+  add(extrude([[-2.12, .3], [2.1, .3], [2.2, .46], [2.2, .6], [2.06, .76], [.95, .9], [-1.45, .92], [-2.05, .9], [-2.18, .76], [-2.18, .44]], 1.74, .06, [-1.35, 1.35]), paint, 0, 0, 0, car);
+  add(extrude([[.95, .86], [.2, 1.34], [-.8, 1.36], [-1.5, .9]], 1.46, .05), tint, 0, 0, 0, car);   // greenhouse, inset from the body sides
+  add(extrude([[.3, 1.29], [.18, 1.37], [-.8, 1.39], [-.98, 1.29]], 1.5, .04), paint, 0, 0, 0, car);   // painted roof skin over the glass
+  for (const z of [-2.24, 2.24]) box(1.7, .16, .12, trim, 0, .38, z, car);        // bumpers
+  for (const sx of [-1, 1]) {
+    box(.04, .12, 1.8, trim, sx * .875, .32, 0, car);                             // rocker
+    box(.14, .08, .1, paint, sx * .93, .98, -.75, car);                           // mirror
+    box(.36, .08, .03, glowM(0xf4f6ff, 1.2), sx * .58, .66, -2.23, car);         // headlight
+    box(.4, .07, .03, glowM(0xe0303a, 1), sx * .55, .78, 2.22, car);             // taillight
+    for (const z of [-1.35, 1.35]) {
+      add(new THREE.CylinderGeometry(.33, .33, .22, 24), trim, sx * .76, .33, z, car).rotation.z = Math.PI / 2;
+      add(new THREE.CylinderGeometry(.2, .2, .23, 16), std(0xb9bec6, { metalness: .85, roughness: .3 }), sx * .76, .33, z, car).rotation.z = Math.PI / 2;
+    }
+  }
+  box(.9, .14, .02, trim, 0, .58, -2.265, car); box(.3, .15, .01, white, 0, .52, 2.25, car);   // grille, plate
+}
 const driver = add(new THREE.SphereGeometry(.12, 12, 10), vSkin, -.4, 1.12, .25, car);   // the driver (steps out as the visitor in the lobby scene)
 // PTZ on a pole by the building, and the view it streams (drawn as a picture-in-picture)
 add(new THREE.CylinderGeometry(.08, .1, 4.8), fenceM, -3, GY + 2.4, 22.5, gateG);
