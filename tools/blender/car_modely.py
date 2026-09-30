@@ -8,7 +8,7 @@ import bpy, bmesh, math, os
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
 
-HERE = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else r"C:\AI Workspace\cortek-tour\tools\blender"
+HERE = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else r"C:\AI Workspace\Repos\cortek-tour\tools\blender"
 OUT_GLB = os.path.normpath(os.path.join(HERE, '..', '..', 'car-modely.glb'))
 COLL = 'CarModelY'
 
